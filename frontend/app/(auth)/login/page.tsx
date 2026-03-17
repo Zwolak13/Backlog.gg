@@ -1,105 +1,102 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { Home, User, Settings, LogOut } from "lucide-react";
-import { logout } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { login, LoginData, ApiResponse, User } from "@/lib/api";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import LOGO from "../../../public/backlog-logo.png";
+import Image from "next/image";
+import { toastSuccess, toastError } from "@/lib/toast";
+import Link from "next/link";
 
-export default function Sidebar() {
-  const [expanded, setExpanded] = useState(false);
+export default function LoginPage() {
   const router = useRouter();
+  const [form, setForm] = useState<LoginData>({ username: "", password: "" });
 
-  const menu = [
-    { name: "Home", icon: <Home size={22} />, href: "/dashboard" },
-    { name: "Profile", icon: <User size={22} />, href: "/dashboard/profile" },
-    { name: "Settings", icon: <Settings size={22} />, href: "/dashboard/settings" },
-  ];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data: ApiResponse<User> = await login(form);
 
-  const handleLogout = async () => {
-    await logout();
-    router.push("/login");
+      if (data.error) {
+        toastError(data.error);
+        return;
+      }
+
+      toastSuccess("Logged in!");
+      router.push("/dashboard");
+    } catch {
+      toastError("Something went wrong");
+    }
   };
 
   return (
-    <aside
-      onMouseEnter={() => setExpanded(true)}
-      onMouseLeave={() => setExpanded(false)}
-      className={`
-        group h-screen 
-        bg-[rgba(20,20,35,0.55)] 
-        backdrop-blur-2xl 
-        border-r border-white/10 
-        flex flex-col justify-between 
-        transition-all duration-300 
-        ${expanded ? "w-60" : "w-20"}
-        relative overflow-hidden
-      `}
-    >
-      <div className="absolute inset-0 bg-gradient-to-b from-[var(--backlog-purple)]/10 to-transparent pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
+      <div
+        className="
+          w-full max-w-md p-10 rounded-3xl backdrop-blur-2xl
+          bg-[radial-gradient(circle_at_top_left,rgba(135,86,241,0.45),rgba(20,20,35,0.6))]
+          border border-[rgba(135,86,241,0.35)]
+          shadow-[0_0_60px_-10px_rgba(135,86,241,0.45)]
+          animate-fade-in relative overflow-hidden
+        "
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--backlog-purple)]/25 to-[var(--backlog-indigo)]/30 pointer-events-none" />
 
-      <div className="flex flex-col gap-3 p-4 relative z-10">
-        {menu.map((item) => (
-          <Link
-            key={item.name}
-            href={item.href}
-            className="
-              flex items-center gap-4 
-              text-white/80 hover:text-white 
-              p-3 rounded-xl 
-              hover:bg-white/10 
-              transition-all duration-200
-            "
-          >
-            <div
-              className="min-w-[22px] flex justify-center"
-              style={{ filter: "drop-shadow(0 0 6px var(--backlog-purple))" }}
+        <div className="absolute -top-20 -right-20 w-60 h-60 bg-[var(--backlog-purple)]/25 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-[var(--backlog-pink)]/20 rounded-full blur-3xl" />
+
+        <div className="relative">
+          <Image
+            src={LOGO}
+            alt="Backlog.gg Logo"
+            width={500}
+            className="mx-auto drop-shadow-[0_0_25px_rgba(135,86,241,0.5)]"
+          />
+
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <Input
+              placeholder="Username"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              className="h-14 text-lg bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-5"
+            />
+
+            <Input
+              placeholder="Password"
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="h-14 text-2xl bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-5"
+            />
+
+            <Button
+              type="submit"
+              className="
+                mt-2 h-11 text-lg font-medium
+                bg-gradient-to-r from-[var(--backlog-purple)] to-[var(--backlog-pink)]
+                text-white shadow-lg
+                hover:shadow-[0_0_20px_rgba(135,86,241,0.5)]
+                transition-all duration-300
+                cursor-pointer
+              "
             >
-              {item.icon}
-            </div>
+              Login
+            </Button>
+          </form>
 
-            <span
-              className={`
-                text-sm font-medium whitespace-nowrap 
-                transition-all duration-300 origin-left
-                ${expanded ? "opacity-100 scale-100" : "opacity-0 scale-90"}
-              `}
+          <p className="text-sm text-muted-foreground mt-6 text-center">
+            Don’t have an account?{" "}
+            <Link
+              href="/register"
+              className="text-[var(--backlog-pink)] hover:underline transition cursor-pointer"
             >
-              {item.name}
-            </span>
-          </Link>
-        ))}
+              Register
+            </Link>
+          </p>
+        </div>
       </div>
-
-      <div className="p-4 relative z-10">
-        <button
-          onClick={handleLogout}
-          className="
-            flex items-center gap-4 w-full 
-            text-red-400 hover:text-red-300 
-            p-3 rounded-xl 
-            hover:bg-red-500/10 
-            transition-all duration-200
-          "
-        >
-          <div
-            className="min-w-[22px] flex justify-center"
-            style={{ filter: "drop-shadow(0 0 6px var(--backlog-pink))" }}
-          >
-            <LogOut size={22} />
-          </div>
-
-          <span
-            className={`
-              text-sm font-medium whitespace-nowrap 
-              transition-all duration-300 origin-left
-              ${expanded ? "opacity-100 scale-100" : "opacity-0 scale-90"}
-            `}
-          >
-            Logout
-          </span>
-        </button>
-      </div>
-    </aside>
+    </div>
   );
 }
