@@ -27,18 +27,19 @@ export default function Sidebar() {
       onMouseLeave={() => setExpanded(false)}
       className={`
         group h-screen 
-        bg-[rgba(20,20,35,0.55)] 
-        backdrop-blur-2xl 
-        border-r border-white/10 
-        flex flex-col justify-between 
-        transition-all duration-300 
         ${expanded ? "w-60" : "w-20"}
+        transition-all duration-300 
+        border-r border-white/10 
+        backdrop-blur-2xl 
         relative overflow-hidden
+        bg-[rgba(20,20,35,0.55)]
       `}
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-[var(--backlog-purple)]/10 to-transparent pointer-events-none" />
+      {/* Gradient glow tła */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[var(--backlog-purple)]/20 to-transparent pointer-events-none" />
 
-      <div className="flex flex-col gap-3 p-4 relative z-10">
+      {/* Górna część */}
+      <div className="flex flex-col gap-2 p-4 relative z-10">
         {menu.map((item) => (
           <Link
             key={item.name}
@@ -71,6 +72,7 @@ export default function Sidebar() {
         ))}
       </div>
 
+      {/* Logout */}
       <div className="p-4 relative z-10">
         <button
           onClick={handleLogout}
