@@ -22,9 +22,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading) return <FullscreenLoader />;
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground md:pl-20">
       <Sidebar />
-      <main className="flex-1 p-10">{children}</main>
+      <main className="p-6 md:p-0">{children}</main>
     </div>
   );
 }
