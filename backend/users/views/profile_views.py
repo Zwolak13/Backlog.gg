@@ -9,6 +9,7 @@ def delete_account(request):
     user.delete()
     return Response({"message": "Account deleted"})
 
+
 from django.contrib.auth import update_session_auth_hash
 
 @api_view(["POST"])
@@ -29,3 +30,34 @@ def change_password(request):
 
     return Response({"message": "Password updated"})
 
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_profile(request):
+    user = request.user
+    return Response({
+        "username": user.username,
+        "email": user.email,
+        "bio": user.bio,
+        "avatar_url": user.avatar_url,
+        "created_at": user.created_at,
+    })
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    user = request.user
+
+    bio = request.data.get("bio")
+    avatar_url = request.data.get("avatar_url")
+
+    if bio is not None:
+        user.bio = bio
+
+    if avatar_url is not None:
+        user.avatar_url = avatar_url
+
+    user.save()
+
+    return Response({"message": "Profile updated"})
