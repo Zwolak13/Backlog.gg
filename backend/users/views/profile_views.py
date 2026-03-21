@@ -51,6 +51,7 @@ def update_profile(request):
 
     bio = request.data.get("bio")
     avatar_url = request.data.get("avatar_url")
+    username = request.data.get("username")
 
     if bio is not None:
         user.bio = bio
@@ -58,6 +59,10 @@ def update_profile(request):
     if avatar_url is not None:
         user.avatar_url = avatar_url
 
+    if username is not None:
+        user.username = username
+
     user.save()
 
     return Response({"message": "Profile updated"})
+
