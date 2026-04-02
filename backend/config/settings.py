@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django_extensions',
 
     'users',
+    'games',
 ]
 
 AUTH_USER_MODEL = 'users.User'
