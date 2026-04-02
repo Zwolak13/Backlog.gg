@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMe, ApiResponse, User } from "@/lib/api";
 import FullscreenLoader from "@/components/dashboard/FullscreenLoader";
+import AuthBackground from "./AuthBackground";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -25,5 +26,5 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
   if (checking) return <FullscreenLoader />;
 
-  return <>{children}</>;
+  return <AuthBackground>{children}</AuthBackground>;
 }
