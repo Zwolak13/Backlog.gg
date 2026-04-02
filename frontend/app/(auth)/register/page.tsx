@@ -18,8 +18,18 @@ export default function RegisterPage() {
     password: "",
   });
 
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (form.password !== confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    setPasswordError("");
+
     try {
       const data: ApiResponse<User> = await register(form);
 
@@ -36,77 +46,106 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
-      <div
-        className="
-          w-full max-w-md p-10 rounded-3xl backdrop-blur-2xl
-          bg-[radial-gradient(circle_at_top_left,rgba(135,86,241,0.45),rgba(20,20,35,0.6))]
-          border border-[rgba(135,86,241,0.35)]
-          shadow-[0_0_60px_-10px_rgba(135,86,241,0.45)]
-          animate-fade-in relative overflow-hidden
-        "
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--backlog-purple)]/25 to-[var(--backlog-indigo)]/30 pointer-events-none" />
+    <div
+      className="
+        w-full max-w-md p-10 rounded-3xl backdrop-blur-2xl
+        bg-[rgba(25,25,40,0.55)]
+        border border-white/10
+        relative
+      "
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl pointer-events-none" />
 
-        <div className="absolute -top-20 -right-20 w-60 h-60 bg-[var(--backlog-purple)]/25 rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-[var(--backlog-pink)]/20 rounded-full blur-3xl" />
+      <div className="relative flex flex-col items-center text-center">
+        <Image
+          src={LOGO}
+          alt="Backlog.gg Logo"
+          width={180}
+          className="mx-auto mb-4 drop-shadow-[0_0_25px_rgba(255,105,180,0.5)]"
+        />
 
-        <div className="relative">
-          <Image
-            src={LOGO}
-            alt="Backlog.gg Logo"
-            className="mx-auto w-100 drop-shadow-[0_0_25px_rgba(135,86,241,0.5)] mb-6"
-          />
+        <p className="text-white/60 mb-8 tracking-wide text-sm">
+          Begin your journey
+        </p>
 
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-6 w-full" onSubmit={handleSubmit}>
+
+          {/* USERNAME */}
+          <div className="text-left">
+            <label className="text-xs text-white/60">USERNAME</label>
             <Input
-              placeholder="Username"
+              placeholder="name"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
-              className="h-14 text-lg bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-5"
+              className="h-12 mt-1 bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-4 text-base"
             />
+          </div>
 
+          {/* EMAIL */}
+          <div className="text-left">
+            <label className="text-xs text-white/60">EMAIL</label>
             <Input
-              placeholder="Email"
+              placeholder="email@example.com"
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="h-14 text-lg bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-5"
+              className="h-12 mt-1 bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-4 text-base"
             />
+          </div>
 
+          {/* PASSWORD */}
+          <div className="text-left">
+            <label className="text-xs text-white/60">PASSWORD</label>
             <Input
-              placeholder="Password"
+              placeholder="••••••••"
               type="password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="h-14 text-2xl bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-5"
+              className="h-12 mt-1 bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-4 text-base"
             />
+          </div>
 
-            <Button
-              type="submit"
-              className="
-                mt-2 h-11 text-lg font-medium
-                bg-gradient-to-r from-[var(--backlog-purple)] to-[var(--backlog-pink)]
-                text-white shadow-lg
-                hover:shadow-[0_0_20px_rgba(135,86,241,0.5)]
-                transition-all duration-300
-                cursor-pointer
-              "
-            >
-              Register
-            </Button>
-          </form>
+          {/* CONFIRM PASSWORD */}
+          <div className="text-left">
+            <label className="text-xs text-white/60">CONFIRM PASSWORD</label>
+            <Input
+              placeholder="••••••••"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={`h-12 mt-1 bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-4 text-base ${
+                passwordError ? "border-red-500" : ""
+              }`}
+            />
+            {passwordError && (
+              <p className="text-[var(--backlog-pink)] text-xs mt-1">{passwordError}</p>
+            )}
+          </div>
 
-          <p className="text-sm text-muted-foreground mt-6 text-center">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-[var(--backlog-pink)] hover:underline transition cursor-pointer"
-            >
-              Login
-            </Link>
-          </p>
-        </div>
+          <Button
+            type="submit"
+            className="
+              mt-2 h-12 text-lg font-medium
+              bg-gradient-to-r from-[var(--backlog-purple)] to-[var(--backlog-pink)]
+              text-white shadow-lg
+              hover:shadow-[0_0_25px_rgba(255,105,180,0.6)]
+              transition-all duration-300
+              cursor-pointer
+            "
+          >
+            REGISTER
+          </Button>
+        </form>
+
+        <p className="text-sm text-white/50 mt-6">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="text-[var(--backlog-pink)] hover:underline transition cursor-pointer"
+          >
+            Login
+          </Link>
+        </p>
       </div>
     </div>
   );
