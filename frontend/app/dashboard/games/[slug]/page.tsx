@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { getGameDetails } from "@/lib/api";
 import Image from "next/image";
 
-export default function GameDetailsPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default function GameDetailsPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = use(params); // poprawne rozpakowanie
+
   const [game, setGame] = useState<any>(null);
 
   useEffect(() => {
@@ -48,7 +53,7 @@ export default function GameDetailsPage({ params }: { params: { slug: string } }
       <h2 className="text-2xl font-semibold mt-8 mb-3">Platforms</h2>
       <ul className="list-disc ml-6 text-white/70">
         {game.platforms?.map((p: any) => (
-          <li key={p.platform.id}>{p.platform.name}</li>
+          <li key={p.platform?.id || p.id}>{p.platform?.name || p.name}</li>
         ))}
       </ul>
 
