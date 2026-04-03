@@ -51,3 +51,13 @@ export const getMe = async (): Promise<ApiResponse<User>> => {
   const res = await fetch(ENDPOINTS.ME, { credentials: "include" });
   return res.json() as Promise<ApiResponse<User>>;
 };
+
+export async function searchGames(query: string) {
+  const res = await fetch(`/api/games?q=${encodeURIComponent(query)}`);
+  return res.json();
+}
+
+export async function getGameDetails(slug: string) {
+  const res = await fetch(`/api/games/${slug}`);
+  return res.json();
+}
