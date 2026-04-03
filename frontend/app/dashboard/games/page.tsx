@@ -51,7 +51,7 @@ export default function GamesPage() {
         {games.map((game: any) => (
           <Link
             key={game.slug}
-            href={`/games/${game.slug}`}
+            href={`/dashboard/games/${game.slug}`}
             className="bg-white/5 rounded-xl overflow-hidden hover:bg-white/10 transition"
           >
             <div className="relative w-full h-40">
