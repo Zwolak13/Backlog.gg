@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { searchGames } from "@/lib/api";
 import Link from "next/link";
 import Image from "next/image";
+import GameTile from "@/components/dashboard/GameTile";
 
 export default function GamesPage() {
   const [query, setQuery] = useState("");
@@ -47,37 +48,12 @@ export default function GamesPage() {
 
       {loading && <p className="text-white/50">Loading...</p>}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {games.map((game: any) => (
-          <Link
-            key={game.slug}
-            href={`/dashboard/games/${game.slug}`}
-            className="bg-white/5 rounded-xl overflow-hidden hover:bg-white/10 transition"
-          >
-            <div className="relative w-full h-40">
-              {game.background_image ? (
-                <Image
-                  src={game.background_image}
-                  alt={game.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-white/10 flex items-center justify-center text-white/40">
-                  No image
-                </div>
-              )}
-            </div>
-
-            <div className="p-3">
-              <h2 className="font-semibold">{game.name}</h2>
-              {game.metacritic && (
-                <p className="text-sm text-white/50">Metacritic: {game.metacritic}</p>
-              )}
-            </div>
-          </Link>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-10">
+        {games.map((game) => (
+            <GameTile key={game.id} game={game} />
         ))}
-      </div>
+        </div>
+
     </div>
   );
 }
