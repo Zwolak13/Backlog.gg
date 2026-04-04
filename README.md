@@ -57,7 +57,14 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
-5. **Uruchom serwer deweloperski**:
+5. **Załaduj dane do bazy z JSONa** *(OPCJONALNE; KOLEJNOŚĆ JEST WAŻNA)*
+```bash
+python manage.py loaddata fixtures/users.json
+python manage.py loaddata fixtures/games.json
+```
+
+
+6. **Uruchom serwer deweloperski**:
 
 ```bash
 python manage.py runserver
