@@ -29,7 +29,8 @@ def search_games(query: str, start: int = 0, limit: int = 40) -> tuple[list, boo
         res = requests.get(
             SEARCH_URL,
             params={"term": query, "l": "english", "cc": "US", "start": start, "count": limit + 1},
-            timeout=6,
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=10,
         )
         res.raise_for_status()
         payload = res.json()
@@ -72,8 +73,9 @@ def get_game_details(appid: int) -> dict | None:
     try:
         res = requests.get(
             DETAILS_URL,
-            params={"appids": appid, "l": "english"},
-            timeout=8,
+            params={"appids": appid, "l": "english", "cc": "US"},
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=10,
         )
         res.raise_for_status()
         payload = res.json()

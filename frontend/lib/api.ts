@@ -54,11 +54,14 @@ export const getMe = async (): Promise<ApiResponse<User>> => {
 
 export async function searchGames(query: string) {
   const res = await fetch(`/api/games?q=${encodeURIComponent(query)}`);
+  if (!res.ok) return null;
   return res.json();
 }
 
 export async function getGameDetails(slug: string) {
+  if (!slug) return null;
   const res = await fetch(`/api/games/${slug}`);
+  if (!res.ok) return null;
   return res.json();
 }
 
@@ -68,11 +71,13 @@ export async function addToLibrary(gameId: number, status: string, rating?: numb
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ game_id: gameId, status, rating }),
   });
+  if (!res.ok) return null;
   return res.json();
 }
 
 export async function removeFromLibrary(userGameId: number) {
   const res = await fetch(`/api/games/library/${userGameId}`, { method: "DELETE" });
+  if (!res.ok) return null;
   return res.json();
 }
 
@@ -82,5 +87,6 @@ export async function updateLibraryEntry(userGameId: number, data: Record<string
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
+  if (!res.ok) return null;
   return res.json();
 }
