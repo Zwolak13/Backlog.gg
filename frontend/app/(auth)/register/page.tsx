@@ -70,7 +70,6 @@ export default function RegisterPage() {
 
         <form className="flex flex-col gap-6 w-full" onSubmit={handleSubmit}>
 
-          {/* USERNAME */}
           <div className="text-left">
             <label className="text-xs text-white/60">USERNAME</label>
             <Input
@@ -81,7 +80,6 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* EMAIL */}
           <div className="text-left">
             <label className="text-xs text-white/60">EMAIL</label>
             <Input
@@ -93,7 +91,6 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* PASSWORD */}
           <div className="text-left">
             <label className="text-xs text-white/60">PASSWORD</label>
             <Input
@@ -105,7 +102,6 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* CONFIRM PASSWORD */}
           <div className="text-left">
             <label className="text-xs text-white/60">CONFIRM PASSWORD</label>
             <Input

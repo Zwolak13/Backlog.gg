@@ -7,44 +7,6 @@
   box-sizing: border-box;
 }
 
-/* Embla Carousel */
-.embla {
-  overflow: hidden;
-  width: 100%;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-.embla__viewport {
-  overflow: hidden;
-  width: 100%;
-}
-
-.embla__container {
-  display: flex;
-  touch-action: pan-y;
-}
-
-.embla__slide {
-  flex-shrink: 0;
-  margin-right: 1rem;
-  flex-basis: 240px;
-}
-
-/* tablet */
-@media (max-width: 1024px) {
-  .embla__slide {
-    flex-basis: 180px;
-  }
-}
-
-/* mobile */
-@media (max-width: 640px) {
-  .embla__slide {
-    flex-basis: 140px;
-  }
-}
-
 /* Twój theme zostaje bez zmian */
 @custom-variant dark (&:is(.dark *));
 @theme inline {

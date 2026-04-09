@@ -1,15 +1,24 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-from .models import Game
+from django.shortcuts import get_object_or_404
+from .models import Game, GameDetailsCache
+from . import steam
+
+PAGE_SIZE = 40
+
 
 @require_GET
 def list_games_view(request):
     q = request.GET.get("q", "").strip()
-
-    games = Game.objects.all()
+    page = max(1, int(request.GET.get("page", 1)))
+    start = (page - 1) * PAGE_SIZE
 
     if q:
-        games = games.filter(name__icontains=q)
+        games, has_more = steam.search_games(q, start=start, limit=PAGE_SIZE)
+    else:
+        total = Game.objects.count()
+        games = list(Game.objects.all().order_by("-updated_at")[start : start + PAGE_SIZE])
+        has_more = (start + PAGE_SIZE) < total
 
     return JsonResponse({
         "results": [
@@ -21,32 +30,30 @@ def list_games_view(request):
                 "metacritic": g.metacritic,
             }
             for g in games
-        ]
+        ],
+        "has_more": has_more,
+        "page": page,
     })
 
 
-from django.shortcuts import get_object_or_404
-from .models import GameDetailsCache
-
 @require_GET
-def game_details_view(request, slug):
-    game = get_object_or_404(Game, slug=slug)
+def game_details_view(request, appid):
+    data = steam.get_game_details(appid)
 
-    try:
-        cache = game.details  # OneToOneField
-        data = cache.raw_json
-    except GameDetailsCache.DoesNotExist:
-        # fallback: zwróć podstawowe dane
-        data = {
-            "id": game.id,
-            "slug": game.slug,
-            "name": game.name,
-            "background_image": game.background_image,
-            "released": game.released,
-            "metacritic": game.metacritic,
-            "description_raw": "No description available.",
-            "platforms": [],
-            "genres": [],
-        }
+    if data is None:
+        game = Game.objects.filter(pk=appid).first()
+        if not game:
+            return JsonResponse({"error": "Game not found"}, status=404)
+        try:
+            data = game.details.raw_json
+        except GameDetailsCache.DoesNotExist:
+            data = {
+                "id": game.id,
+                "name": game.name,
+                "background_image": game.background_image,
+                "description_raw": "",
+                "platforms": [],
+                "genres": [],
+            }
 
     return JsonResponse(data)

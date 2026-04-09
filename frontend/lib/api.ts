@@ -61,3 +61,26 @@ export async function getGameDetails(slug: string) {
   const res = await fetch(`/api/games/${slug}`);
   return res.json();
 }
+
+export async function addToLibrary(gameId: number, status: string, rating?: number) {
+  const res = await fetch("/api/games/library", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ game_id: gameId, status, rating }),
+  });
+  return res.json();
+}
+
+export async function removeFromLibrary(userGameId: number) {
+  const res = await fetch(`/api/games/library/${userGameId}`, { method: "DELETE" });
+  return res.json();
+}
+
+export async function updateLibraryEntry(userGameId: number, data: Record<string, unknown>) {
+  const res = await fetch(`/api/games/library/${userGameId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
