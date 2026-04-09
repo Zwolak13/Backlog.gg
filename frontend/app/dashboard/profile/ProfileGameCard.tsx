@@ -1,66 +1,75 @@
-export default function ProfileGameCard({ game }: any) {
+"use client";
+
+import { useState } from "react";
+
+interface GameCardProps {
+  game: {
+    title: string;
+    cover: any;
+    rating?: number;
+  };
+}
+
+export default function ProfileGameCard({ game }: GameCardProps) {
+  const [imgError, setImgError] = useState(false);
+
+  const src = imgError
+    ? null
+    : typeof game.cover === "string"
+    ? game.cover
+    : game.cover?.src ?? null;
+
   return (
     <div
       className="
-        relative group
-        w-[240px] h-72
-        rounded-xl overflow-hidden
-        bg-white/5 border border-white/10 
-        backdrop-blur-xl
-        shadow-[0_0_20px_-5px_var(--backlog-purple)]
-        hover:shadow-[0_0_30px_-5px_var(--backlog-purple)]
+        group relative
+        w-[160px] h-[220px]
+        rounded-lg overflow-hidden
+        cursor-pointer select-none
+        border border-white/[0.07]
         transition-all duration-300
-        cursor-pointer
+        hover:border-white/20
+        hover:scale-[1.03]
+        shadow-[0_2px_12px_rgba(0,0,0,0.5)]
+        hover:shadow-[0_6px_20px_rgba(0,0,0,0.7)]
+        bg-[rgb(28,30,40)]
       "
     >
-      <img
-        src={game.cover}
-        className="
-          w-full h-full object-cover 
-          group-hover:scale-105 transition duration-500
-        "
-      />
+      {src ? (
+        <img
+          src={src}
+          alt={game.title}
+          onError={() => setImgError(true)}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--backlog-purple)]/20 to-transparent" />
+      )}
 
-      <div
-        className="
-          absolute inset-0 
-          bg-gradient-to-b 
-          from-[rgba(0,0,0,0.55)] 
-          via-transparent 
-          to-transparent
-        "
-      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-      <div
-        className="
-          absolute inset-0 
-          bg-gradient-to-t 
-          from-[rgba(0,0,0,0.85)] 
-          via-[rgba(0,0,0,0.4)] 
-          to-transparent
-        "
-      />
+      {game.rating != null && (
+        <div
+          className="
+            absolute top-2.5 right-2.5
+            px-2.5 py-1 rounded-full
+            bg-[var(--backlog-purple)]/70 backdrop-blur-md
+            border border-white/20
+            text-white text-sm font-semibold
+            flex items-center gap-1
+            shadow-[0_0_10px_var(--backlog-purple)]
+            group-hover:bg-[var(--backlog-purple)]
+            transition
+          "
+        >
+          ★ {game.rating}
+        </div>
+      )}
 
-      <div
-        className="
-          absolute top-3 right-3 
-          px-3 py-1 rounded-full 
-          bg-[var(--backlog-purple)]/70 
-          backdrop-blur-md border border-white/20
-          flex items-center gap-1
-          text-white text-sm font-semibold
-          shadow-[0_0_10px_var(--backlog-purple)]
-          group-hover:bg-[var(--backlog-purple)]
-          transition
-        "
-      >
-        ★ {game.rating ?? "—"}
-      </div>
-
-      <div className="absolute bottom-0 left-0 w-full p-4">
-        <h3 className="text-lg font-semibold text-white drop-shadow-md">
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <p className="text-white text-sm font-semibold leading-tight line-clamp-2 drop-shadow-md">
           {game.title}
-        </h3>
+        </p>
       </div>
     </div>
   );

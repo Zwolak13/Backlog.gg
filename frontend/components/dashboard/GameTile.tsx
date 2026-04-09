@@ -88,7 +88,7 @@ export default function GameTile({ game }: { game: any }) {
   };
 
   return (
-    <Link href={`/dashboard/games/${game.slug}`} className="block">
+    <Link href={`/dashboard/games/${game.id}`} className="block">
       <div
         className="relative"
         style={{ overflow: "visible", perspective: "900px" }}
@@ -96,7 +96,6 @@ export default function GameTile({ game }: { game: any }) {
         onMouseMove={handleMouseMove}
         onMouseLeave={handleLeave}
       >
-        {/* ── RINGS + OCCLUDER ── all in one preserve-3d group */}
         <div
           ref={ringsRef}
           className="absolute inset-0 pointer-events-none"
@@ -108,14 +107,9 @@ export default function GameTile({ game }: { game: any }) {
             `,
           }}
         >
-          {/* Rings: i=0 is closest (least depth), i=RINGS-1 is furthest back.
-              Further back = more negative Z = smaller due to perspective
-              = needs larger scale to still visually extend outside the card. */}
           {Array.from({ length: RINGS }).map((_, i) => {
-            const offset = (i + 1) * 7;           // expands outward in screen space
-            const depth = (i + 1) * 14;           // goes further behind
-            // Counteract perspective shrink: at depth D with perspective P,
-            // apparent scale = P/(P+D). We invert it: scale = (P+D)/P
+            const offset = (i + 1) * 7;
+            const depth = (i + 1) * 14;
             const P = 900;
             const scale = (P + depth) / P * 0.8;
             const opacity = (1 - i / RINGS) * 0.85;
@@ -140,27 +134,17 @@ export default function GameTile({ game }: { game: any }) {
             );
           })}
 
-          {/*
-            Occluder: sits at Z = -1px (just behind card surface, in front of
-            ALL rings which are at -14px, -28px … -112px).
-            - Exactly covers the card footprint (inset: 0)
-            - Opaque only on hover via --gi; transparent at rest so other tiles
-              are never affected
-            - backgroundColor must match your page background
-          */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               borderRadius: "12px",
-              // Opacity driven by --gi so it only activates on the hovered tile
-              backgroundColor: `rgb(15, 15, 20)`, // ← match your page bg here
+              backgroundColor: `rgb(15, 15, 20)`,
               opacity: `calc(0.1 + 0.9 * var(--gi, 0))`,
               transform: "translateZ(-1px)",
             }}
           />
         </div>
 
-        {/* ── CARD ── its own perspective context, renders on top of rings */}
         <div
           ref={ref}
           className="group rounded-xl overflow-hidden [transform-style:preserve-3d]"
@@ -170,12 +154,10 @@ export default function GameTile({ game }: { game: any }) {
               rotateY(var(--rotateY, 0deg))
             `,
             willChange: "transform",
-            // Card sits at Z=0 in its own stacking context — above the rings wrapper
             position: "relative",
             zIndex: 1,
           }}
         >
-          {/* Shimmer */}
           <div
             ref={shimmerRef}
             className="absolute inset-0 rounded-xl pointer-events-none z-10"

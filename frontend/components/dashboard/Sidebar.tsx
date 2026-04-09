@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Home, User, Settings, LogOut, Menu, X } from "lucide-react";
+import { Home, User, Settings, LogOut, Menu, X, Gamepad2 } from "lucide-react";
 import { logout } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +13,7 @@ export default function Sidebar() {
 
   const menu = [
     { name: "Home", icon: <Home size={22} />, href: "/dashboard" },
+    { name: "Games", icon: <Gamepad2 size={22} />, href: "/dashboard/games" },
     { name: "Profile", icon: <User size={22} />, href: "/dashboard/profile" },
     { name: "Settings", icon: <Settings size={22} />, href: "/dashboard/settings" },
   ];

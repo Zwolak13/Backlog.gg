@@ -5,17 +5,16 @@ const DJANGO_URL = "http://localhost:8000";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") || "";
+  const page = searchParams.get("page") || "1";
 
-  const url =
-    q.length > 0
-      ? `${DJANGO_URL}/api/games?q=${encodeURIComponent(q)}`
-      : `${DJANGO_URL}/api/games`;
+  const params = new URLSearchParams({ page });
+  if (q) params.set("q", q);
 
   try {
-    const res = await fetch(url);
+    const res = await fetch(`${DJANGO_URL}/api/games?${params}`);
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

@@ -9,12 +9,10 @@ export default function ProfileSettingsModal({ onClose }: { onClose: () => void 
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
 
-  // Password fields
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Disable background scroll
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -22,7 +20,6 @@ export default function ProfileSettingsModal({ onClose }: { onClose: () => void 
     };
   }, []);
 
-  // Load current profile data
   useEffect(() => {
     const load = async () => {
       const res = await fetch("/api/user/me");
@@ -95,7 +92,6 @@ export default function ProfileSettingsModal({ onClose }: { onClose: () => void 
         "
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
         <button
           onClick={onClose}
           className="
@@ -111,7 +107,6 @@ export default function ProfileSettingsModal({ onClose }: { onClose: () => void 
 
         <h2 className="text-3xl font-bold mb-8">Profile Settings</h2>
 
-        {/* SECTION: Avatar */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold mb-2">Profile Picture</h3>
           <input
@@ -125,7 +120,6 @@ export default function ProfileSettingsModal({ onClose }: { onClose: () => void 
           />
         </div>
 
-        {/* SECTION: Username */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold mb-2">Username</h3>
           <input
@@ -139,7 +133,6 @@ export default function ProfileSettingsModal({ onClose }: { onClose: () => void 
           />
         </div>
 
-        {/* SECTION: Bio */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold mb-2">Bio</h3>
           <textarea
@@ -151,7 +144,6 @@ export default function ProfileSettingsModal({ onClose }: { onClose: () => void 
           />
         </div>
 
-        {/* SECTION: Password */}
         <div className="mb-10">
           <h3 className="text-lg font-semibold mb-4">Change Password</h3>
 
@@ -184,12 +176,10 @@ export default function ProfileSettingsModal({ onClose }: { onClose: () => void 
           </Button>
         </div>
 
-        {/* Save */}
         <Button className="w-full mb-3" onClick={handleSave}>
           Save Profile Changes
         </Button>
 
-        {/* Delete account */}
         <Button variant="destructive" className="w-full" onClick={handleDelete}>
           Delete Account
         </Button>

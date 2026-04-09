@@ -31,7 +31,6 @@ export default function AuthBackground({ children }: { children: React.ReactNode
       "
     >
 
-      {/* GRID */}
       <div
         style={{
           transform: `translate(${mousePos.x * 0.007}px, ${mousePos.y * -0.019}px)`
@@ -45,7 +44,6 @@ export default function AuthBackground({ children }: { children: React.ReactNode
         "
       />
 
-      {/* MASKS */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           style={{
@@ -93,10 +91,8 @@ export default function AuthBackground({ children }: { children: React.ReactNode
         />
       </div>
 
-      {/* BACKGROUND */}
       <div className="absolute inset-0 bg-[#0d0d16]/60 pointer-events-none" />
 
-      {/* ORBS */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
           style={{
@@ -144,7 +140,6 @@ export default function AuthBackground({ children }: { children: React.ReactNode
         />
       </div>
 
-      {/* CONTENT */}
       <div className="relative z-10 w-full max-w-md">
         {children}
       </div>
