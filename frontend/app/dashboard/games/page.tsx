@@ -10,7 +10,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import GameSkeleton from "@/components/dashboard/GameSkeleton";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface Game {
   id: number;
   slug: string;
@@ -27,7 +26,6 @@ const ICONS: Record<string, React.ReactNode> = {
   coming_soon:  <Clock      size={13} />,
 };
 
-// ─── Fetch ────────────────────────────────────────────────────────────────────
 async function fetchBrowse(safe: boolean) {
   const r = await fetch(`/api/games?safe=${safe ? "1" : "0"}`); if (!r.ok) return null;
   return r.json() as Promise<{ mode: "browse"; sections: Section[] }>;
@@ -38,7 +36,6 @@ async function fetchSearch(q: string, page: number, safe: boolean) {
   return r.json() as Promise<{ mode: "search"; results: Game[]; has_more: boolean }>;
 }
 
-// ─── Drag-scroll hook ─────────────────────────────────────────────────────────
 function useDrag() {
   const ref   = useRef<HTMLDivElement>(null);
   const moved = useRef(false);
@@ -63,7 +60,6 @@ function useDrag() {
   return { ref, moved, down };
 }
 
-// ─── Landscape card (Steam-style 460:215) ─────────────────────────────────────
 function LandscapeCard({ game, dragging }: { game: Game; dragging?: React.MutableRefObject<boolean> }) {
   const router = useRouter();
   return (
@@ -98,9 +94,7 @@ function LandscapeCard({ game, dragging }: { game: Game; dragging?: React.Mutabl
   );
 }
 
-// ─── Featured hero carousel ───────────────────────────────────────────────────
 function FeaturedCarousel({ games }: { games: Game[] }) {
-  // Deduplicate by id on the frontend as a safety net
   const unique = games.filter((g, i, arr) => arr.findIndex((x) => x.id === g.id) === i);
   const [idx, setIdx] = useState(0);
   const game = unique[idx];
@@ -114,16 +108,13 @@ function FeaturedCarousel({ games }: { games: Game[] }) {
 
   return (
     <div className="mb-14">
-      {/* main panel */}
       <div className="relative w-full overflow-hidden rounded-2xl" style={{ height: 420 }}>
-        {/* sharp full-bleed centered art */}
         <Image
           key={game.id}
           src={game.background_image} alt={game.name} fill
           className="object-cover object-center"
           sizes="100vw" priority
         />
-        {/* gradient overlays so text stays readable */}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(18,19,24,0.92) 0%, rgba(18,19,24,0.55) 45%, rgba(18,19,24,0.15) 100%)" }} />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(18,19,24,0.7) 0%, transparent 40%)" }} />
 

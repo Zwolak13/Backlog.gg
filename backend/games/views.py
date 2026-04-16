@@ -27,7 +27,6 @@ def game_details_view(request, appid):
     data = steam.get_game_details(appid)
 
     if data is None:
-        # Steam API failed — fall back to whatever is stored (user-saved games only)
         game = Game.objects.filter(pk=appid).first()
         if not game:
             return JsonResponse({"error": "Game not found"}, status=404)

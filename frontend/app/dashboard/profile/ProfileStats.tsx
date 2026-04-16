@@ -19,7 +19,6 @@ export default function ProfileStats() {
       className="rounded-2xl overflow-hidden"
       style={{ background: "rgb(14,15,24)", border: "1px solid rgba(255,255,255,0.07)" }}
     >
-      {/* header */}
       <div
         className="flex items-center gap-2.5 px-5 py-4 border-b"
         style={{ borderColor: "rgba(255,255,255,0.06)" }}
@@ -38,7 +37,6 @@ export default function ProfileStats() {
         </span>
       </div>
 
-      {/* total count */}
       <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         <p className="text-[10px] text-white/28 uppercase tracking-[0.14em] font-semibold mb-1">Total games</p>
         <p
@@ -66,7 +64,6 @@ export default function ProfileStats() {
         )}
       </div>
 
-      {/* per-status rows */}
       <div className="p-3 flex flex-col gap-1.5">
         {STATUS_CONFIG.map((s) => {
           const val = stats?.[s.key] ?? 0;
