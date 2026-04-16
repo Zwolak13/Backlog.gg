@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { username: string } }) {
-  const res = await fetch(`http://localhost:8000/api/user/profile/${params.username}/`);
+export async function GET(req: Request, context: { params: Promise<{ username: string }> }) {
+  const { username } = await context.params;
+  const res = await fetch(`http://localhost:8000/api/user/profile/${username}/`);
   if (!res.ok) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }

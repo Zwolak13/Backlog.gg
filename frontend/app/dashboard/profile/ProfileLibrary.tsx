@@ -32,11 +32,11 @@ export default function ProfileLibrary() {
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all capitalize
-              ${filter === s
-                ? "bg-[var(--backlog-purple)] text-white"
-                : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80 border border-white/10"
-              }`}
+            className="px-4 py-2 rounded-xl text-xs font-semibold transition-all capitalize"
+            style={filter === s
+              ? { background: "linear-gradient(135deg, var(--backlog-purple), var(--backlog-indigo))", color: "white", boxShadow: "0 2px 12px rgba(135,86,241,0.35)" }
+              : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }
+            }
           >
             {s}
           </button>
@@ -46,12 +46,15 @@ export default function ProfileLibrary() {
       {loading ? (
         <p className="text-white/30 text-sm">Loading…</p>
       ) : games.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-          <p className="text-white/30 font-medium">No games here yet.</p>
+        <div
+          className="flex flex-col items-center justify-center py-24 gap-3 text-center rounded-2xl"
+          style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.07)" }}
+        >
+          <p className="text-white/35 font-medium">No games here yet</p>
           <p className="text-white/20 text-sm max-w-xs">Browse games and add them to your library.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {games.map((ug) => (
             <LibraryCard
               key={ug.id}

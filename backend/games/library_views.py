@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Game, UserGame
 
+# get_object_or_404 kept for library_item_view (UserGame lookups)
+
 
 def serialize_user_game(ug):
     return {
@@ -41,7 +43,16 @@ def library_view(request):
     if not game_id or not status:
         return Response({"error": "game_id and status are required"}, status=400)
 
-    game = get_object_or_404(Game, pk=game_id)
+    # Upsert Game row from data the frontend already has — avoids a Steam API call here
+    game, _ = Game.objects.get_or_create(
+        id=game_id,
+        defaults={
+            "name": request.data.get("game_name", ""),
+            "slug": request.data.get("game_slug", str(game_id)),
+            "background_image": request.data.get("game_image", ""),
+            "metacritic": request.data.get("game_metacritic"),
+        },
+    )
 
     ug, created = UserGame.objects.update_or_create(
         user=request.user,
@@ -96,6 +107,16 @@ def library_favourites_view(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def library_check_view(request, game_id):
+    try:
+        ug = UserGame.objects.select_related("game").get(user=request.user, game_id=game_id)
+        return Response({"in_library": True, "entry": serialize_user_game(ug)})
+    except UserGame.DoesNotExist:
+        return Response({"in_library": False, "entry": None})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def library_stats_view(request):
     qs = UserGame.objects.filter(user=request.user)
     stats = {
@@ -106,3 +127,25 @@ def library_stats_view(request):
     }
     stats["total"] = sum(stats.values())
     return Response(stats)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def friends_ratings_view(request, game_id):
+    from users.models import Friendship
+    friend_ids = Friendship.objects.filter(from_user=request.user).values_list("to_user_id", flat=True)
+    qs = (
+        UserGame.objects
+        .filter(user_id__in=friend_ids, game_id=game_id)
+        .select_related("user")
+    )
+    data = [
+        {
+            "username": ug.user.username,
+            "avatar_url": ug.user.avatar_url,
+            "rating": ug.rating,
+            "status": ug.status,
+        }
+        for ug in qs
+    ]
+    return Response({"ratings": data})

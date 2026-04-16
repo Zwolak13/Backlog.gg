@@ -65,11 +65,16 @@ export async function getGameDetails(slug: string) {
   return res.json();
 }
 
-export async function addToLibrary(gameId: number, status: string, rating?: number) {
+export async function addToLibrary(
+  gameId: number,
+  status: string,
+  rating?: number,
+  gameMeta?: { game_name?: string; game_slug?: string; game_image?: string; game_metacritic?: number | null },
+) {
   const res = await fetch("/api/games/library", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ game_id: gameId, status, rating }),
+    body: JSON.stringify({ game_id: gameId, status, rating, ...gameMeta }),
   });
   if (!res.ok) return null;
   return res.json();
