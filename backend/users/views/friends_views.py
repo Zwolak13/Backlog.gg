@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from ..models import User, Friendship, FriendRequest
 
 
@@ -13,11 +14,24 @@ def serialize_friend(user):
     }
 
 
+def get_friends(user):
+    friendships = Friendship.objects.filter(
+        Q(from_user=user) | Q(to_user=user)
+    ).select_related("from_user", "to_user")
+    seen = set()
+    result = []
+    for f in friendships:
+        other = f.to_user if f.from_user == user else f.from_user
+        if other.id not in seen:
+            seen.add(other.id)
+            result.append(serialize_friend(other))
+    return result
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def friends_list_view(request):
-    friendships = Friendship.objects.filter(from_user=request.user).select_related("to_user")
-    return Response({"friends": [serialize_friend(f.to_user) for f in friendships]})
+    return Response({"friends": get_friends(request.user)})
 
 
 @api_view(["POST"])
@@ -45,6 +59,12 @@ def remove_friend_view(request, username):
     Friendship.objects.filter(from_user=request.user, to_user=target).delete()
     Friendship.objects.filter(from_user=target, to_user=request.user).delete()
     return Response({"message": f"Removed {username}"})
+
+
+@api_view(["GET"])
+def public_friends_list_view(request, username):
+    user = get_object_or_404(User, username=username)
+    return Response({"friends": get_friends(user)})
 
 
 @api_view(["GET"])
@@ -102,16 +122,17 @@ def send_friend_request_view(request):
     if target == request.user:
         return Response({"error": "Cannot add yourself"}, status=400)
 
-    if Friendship.objects.filter(from_user=request.user, to_user=target).exists():
+    if Friendship.objects.filter(Q(from_user=request.user, to_user=target) | Q(from_user=target, to_user=request.user)).exists():
         return Response({"error": "Already friends"}, status=400)
 
-    _, created = FriendRequest.objects.get_or_create(
+    if FriendRequest.objects.filter(from_user=request.user, to_user=target, status="pending").exists():
+        return Response({"error": "Request already sent"}, status=400)
+
+    FriendRequest.objects.update_or_create(
         from_user=request.user,
         to_user=target,
         defaults={"status": "pending"},
     )
-    if not created:
-        return Response({"error": "Request already sent"}, status=400)
 
     return Response({"message": f"Request sent to {username}"}, status=201)
 

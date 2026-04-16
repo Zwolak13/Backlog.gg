@@ -22,12 +22,10 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
 
   return (
     <div className="w-full">
-      {/* ── Banner ── */}
       <div
         className="relative w-full overflow-hidden"
         style={{ height: 280, background: "linear-gradient(155deg, #0e0b22 0%, #09091a 45%, #080912 100%)" }}
       >
-        {/* vivid left glow */}
         <div
           className="absolute"
           style={{
@@ -36,7 +34,6 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
             background: "radial-gradient(ellipse, rgba(100,55,255,0.4) 0%, transparent 60%)",
           }}
         />
-        {/* center purple glow */}
         <div
           className="absolute"
           style={{
@@ -45,7 +42,6 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
             background: "radial-gradient(ellipse, rgba(135,86,241,0.25) 0%, transparent 58%)",
           }}
         />
-        {/* right pink accent */}
         <div
           className="absolute"
           style={{
@@ -55,7 +51,6 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
           }}
         />
 
-        {/* dot grid */}
         <div
           className="absolute inset-0"
           style={{
@@ -66,7 +61,6 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
           }}
         />
 
-        {/* top accent line */}
         <div
           className="absolute top-0 left-0 right-0"
           style={{
@@ -75,7 +69,6 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
           }}
         />
 
-        {/* bottom fade into identity bar */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0b0c18]" />
 
         <Link
@@ -93,13 +86,10 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
         </Link>
       </div>
 
-      {/* ── Identity bar ── */}
       <div style={{ background: "#0b0c18", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div className="px-8 md:px-12">
 
-          {/* avatar + name row */}
           <div className="flex items-end gap-6 -mt-14 pb-6">
-            {/* avatar */}
             <div className="relative shrink-0 z-10">
               <div
                 className="rounded-xl"
@@ -130,7 +120,6 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
               </div>
             </div>
 
-            {/* name + bio */}
             <div className="pb-1 flex-1 min-w-0">
               <div className="flex items-center gap-3 flex-wrap mb-2">
                 <h1
@@ -162,7 +151,6 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
             </div>
           </div>
 
-          {/* stat strip */}
           <div
             className="flex"
             style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginLeft: "-2rem", marginRight: "-2rem" }}
@@ -194,7 +182,6 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
         </div>
       </div>
 
-      {/* ── Tabs ── */}
       <div
         className="px-8 md:px-12 border-b sticky top-0 z-20"
         style={{

@@ -25,7 +25,6 @@ def change_password(request):
     user.set_password(new_password)
     user.save()
 
-    # ważne: nie wylogowuje użytkownika
     update_session_auth_hash(request, user)
 
     return Response({"message": "Password updated"})

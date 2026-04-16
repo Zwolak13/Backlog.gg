@@ -66,9 +66,13 @@ python manage.py loaddata fixtures/games.json
 
 6. **Uruchom serwer deweloperski**:
 
+Projekt używa **Daphne** (ASGI) zamiast `runserver` – wymagane dla WebSocketów (status online użytkowników).
+
 ```bash
-python manage.py runserver
+daphne -p 8000 config.asgi:application
 ```
+
+> `python manage.py runserver` nadal działa, ale WebSockety nie będą działać – status online będzie nieaktywny.
 
 Strona backendu dostępna jest pod: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
@@ -107,7 +111,8 @@ Strona frontendowa dostępna jest pod: [http://localhost:3000](http://localhost:
   1. Utworzyć `.venv`  
   2. Zainstalować zależności  
   3. Wykonać migracje Django  
-  4. Uruchomić backend i frontend  
+  4. Uruchomić backend (`daphne`) i frontend  
 - Wszystkie zmiany w bazie danych powinny być wykonywane przez **migracje Django** (`makemigrations` + `migrate`) – plik `db.sqlite3` **nie jest commitowany**.
+- Backend używa **Django Channels + Daphne** (ASGI) dla obsługi WebSocketów. Channel layer działa in-memory (bez Redisa) – wystarczy na środowisko deweloperskie.
 
 ---

@@ -1,4 +1,3 @@
-# LOGIN
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -27,7 +26,6 @@ def login_view(request):
     return Response({"error": "Invalid credentials"}, status=400)
 
 
-# REGISTER
 from ..serializers import RegisterSerializer
 
 @api_view(["POST"])
@@ -50,7 +48,6 @@ def register_view(request):
     return Response({"error": serializer.errors}, status=400)
 
 
-# CURRENT USER/ME
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 
@@ -69,14 +66,12 @@ def me_view(request):
     })
 
 
-# LOGOUT
 @api_view(["POST"])
 def logout_view(request):
     logout(request)
     return Response({"message": "Logged out"})
 
 
-# CSRF
 from django.middleware.csrf import get_token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response

@@ -4,8 +4,6 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Game, UserGame
 
-# get_object_or_404 kept for library_item_view (UserGame lookups)
-
 
 def serialize_user_game(ug):
     return {
@@ -43,7 +41,6 @@ def library_view(request):
     if not game_id or not status:
         return Response({"error": "game_id and status are required"}, status=400)
 
-    # Upsert Game row from data the frontend already has — avoids a Steam API call here
     game, _ = Game.objects.get_or_create(
         id=game_id,
         defaults={
@@ -127,6 +124,52 @@ def library_stats_view(request):
     }
     stats["total"] = sum(stats.values())
     return Response(stats)
+
+
+@api_view(["GET"])
+def public_library_view(request, username):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    user = get_object_or_404(User, username=username)
+    status_filter = request.GET.get("status")
+    qs = UserGame.objects.filter(user=user).select_related("game").order_by("-updated_at")
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    return Response({"games": [serialize_user_game(ug) for ug in qs]})
+
+
+@api_view(["GET"])
+def public_library_stats_view(request, username):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    user = get_object_or_404(User, username=username)
+    qs = UserGame.objects.filter(user=user)
+    stats = {
+        "backlog": qs.filter(status="backlog").count(),
+        "playing": qs.filter(status="playing").count(),
+        "completed": qs.filter(status="completed").count(),
+        "wishlist": qs.filter(status="wishlist").count(),
+    }
+    stats["total"] = sum(stats.values())
+    return Response(stats)
+
+
+@api_view(["GET"])
+def public_library_recent_view(request, username):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    user = get_object_or_404(User, username=username)
+    qs = UserGame.objects.filter(user=user).select_related("game").order_by("-updated_at")[:10]
+    return Response({"games": [serialize_user_game(ug) for ug in qs]})
+
+
+@api_view(["GET"])
+def public_library_favourites_view(request, username):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    user = get_object_or_404(User, username=username)
+    qs = UserGame.objects.filter(user=user, is_favourite=True).select_related("game").order_by("-updated_at")
+    return Response({"games": [serialize_user_game(ug) for ug in qs]})
 
 
 @api_view(["GET"])

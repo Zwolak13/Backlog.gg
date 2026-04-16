@@ -125,7 +125,6 @@ function GameCard({ userGame }: { userGame: LibraryGame }) {
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-8px)"; }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; }}
       >
-        {/* image area */}
         <div
           className="relative rounded-xl overflow-hidden"
           style={{
@@ -162,13 +161,11 @@ function GameCard({ userGame }: { userGame: LibraryGame }) {
             style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.05) 100%)" }}
           />
 
-          {/* status strip */}
           <div
             className="absolute bottom-0 left-0 right-0"
             style={{ height: 2, background: statusColor, opacity: 0.7, boxShadow: `0 0 8px ${statusColor}` }}
           />
 
-          {/* top-left: favourite star */}
           {is_favourite && (
             <div
               className="absolute top-2.5 left-2.5 w-6 h-6 rounded-lg flex items-center justify-center"
@@ -178,7 +175,6 @@ function GameCard({ userGame }: { userGame: LibraryGame }) {
             </div>
           )}
 
-          {/* top-right: rating badge */}
           {rating != null && (
             <div
               className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold"
@@ -194,7 +190,6 @@ function GameCard({ userGame }: { userGame: LibraryGame }) {
             </div>
           )}
 
-          {/* bottom: game name */}
           <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-8">
             <p className="text-white text-sm font-semibold leading-snug line-clamp-1 mb-1.5">
               {game.name}
@@ -202,7 +197,6 @@ function GameCard({ userGame }: { userGame: LibraryGame }) {
           </div>
         </div>
 
-        {/* below card: status + rating text */}
         <div className="flex items-center justify-between mt-2.5 px-1">
           <div className="flex items-center gap-2">
             <span

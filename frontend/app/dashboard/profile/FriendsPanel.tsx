@@ -4,6 +4,7 @@ import { Users, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AddFriendModal from "./AddFriendModal";
+import { usePresence } from "@/hooks/usePresence";
 
 interface Friend {
   username: string;
@@ -14,6 +15,7 @@ interface Friend {
 export default function FriendsPanel() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const onlineUsers = usePresence();
 
   const loadFriends = () => {
     fetch("/api/user/friends")
@@ -96,7 +98,11 @@ export default function FriendsPanel() {
                     />
                     <span
                       className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
-                      style={{ background: "#34d399", border: "2px solid rgb(14,15,24)", boxShadow: "0 0 5px #34d399" }}
+                      style={{
+                        background: onlineUsers.has(f.username) ? "#34d399" : "rgba(255,255,255,0.15)",
+                        border: "2px solid rgb(14,15,24)",
+                        boxShadow: onlineUsers.has(f.username) ? "0 0 5px #34d399" : "none",
+                      }}
                     />
                   </div>
                   <div className="flex flex-col min-w-0">

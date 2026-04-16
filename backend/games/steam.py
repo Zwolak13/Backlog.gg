@@ -2,9 +2,6 @@ import re
 import requests
 from django.utils.text import slugify
 
-# ── Filtering ─────────────────────────────────────────────────────────────────
-
-# Catches DLC/non-game content by name patterns Steam doesn't label properly
 _DLC_RE = re.compile(
     r'\b('
     r'Soundtrack|Original Soundtrack|\bOST\b|'
@@ -14,12 +11,10 @@ _DLC_RE = re.compile(
     r'Deluxe Upgrade|Premium Upgrade|Expansion Pack|'
     r'Prologue Demo|Bonus Content'
     r')\b'
-    # "Game Name - DLC name" dash-separated DLC pattern
     r'|\s[-–]\s.{0,50}(?:Pack|DLC|Content|Bonus|Cosmetic|Skin|Bundle)\s*$',
     re.IGNORECASE,
 )
 
-# Edition/variant suffixes to strip when deduplicating
 _EDITION_RE = re.compile(
     r'\s*[:\-–]?\s*('
     r'Deluxe|Standard|Gold|Ultimate|Premium|Complete|Enhanced|'
@@ -34,7 +29,6 @@ def _normalize_name(name: str) -> str:
     return _EDITION_RE.sub("", name).strip().lower()
 
 
-# Adult/18+ content by name keywords
 _ADULT_RE = re.compile(
     r'\b('
     r'hentai|eroge|18\+|adult only|ecchi|lewd|nude|uncensored|erotic|nsfw|XXX|'
@@ -81,7 +75,6 @@ def make_slug(name: str, appid: int) -> str:
 
 
 def get_featured_sections(safe: bool = True) -> list[dict]:
-    """Fetch Steam featured categories as labelled sections. No DB writes."""
     try:
         res = requests.get(
             FEATURED_URL,
@@ -94,7 +87,6 @@ def get_featured_sections(safe: bool = True) -> list[dict]:
     except Exception:
         return []
 
-    # Global dedup across all sections (same game can appear in multiple lists)
     seen_names: set[str] = set()
     seen_ids: set[int] = set()
 
@@ -111,7 +103,6 @@ def get_featured_sections(safe: bool = True) -> list[dict]:
                 continue
             if safe and _is_adult(name):
                 continue
-            # Deduplicate by appid and by normalized name (catches edition variants)
             norm = _normalize_name(name)
             if appid in seen_ids or norm in seen_names:
                 continue
@@ -132,9 +123,7 @@ def get_featured_sections(safe: bool = True) -> list[dict]:
 
 
 def search_games(query: str, start: int = 0, limit: int = 40, safe: bool = True) -> tuple[list[dict], bool]:
-    """Search Steam store. Returns plain dicts — no DB writes."""
     try:
-        # Fetch extra results to account for filtered items
         fetch_count = limit * 3
         res = requests.get(
             SEARCH_URL,
@@ -174,7 +163,6 @@ def search_games(query: str, start: int = 0, limit: int = 40, safe: bool = True)
 
 
 def get_game_details(appid: int) -> dict | None:
-    """Fetch game details from Steam API. No DB writes."""
     try:
         res = requests.get(
             DETAILS_URL,

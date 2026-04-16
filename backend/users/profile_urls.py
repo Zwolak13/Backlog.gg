@@ -6,6 +6,7 @@ from .views.friends_views import (
     add_friend_view,
     remove_friend_view,
     public_profile_view,
+    public_friends_list_view,
     search_users_view,
     send_friend_request_view,
     pending_requests_view,
@@ -27,4 +28,5 @@ urlpatterns = [
     path("friends/request/<int:pk>/accept/", accept_request_view),
     path("friends/request/<int:pk>/decline/", decline_request_view),
     path("profile/<str:username>/", public_profile_view),
+    path("profile/<str:username>/friends/", public_friends_list_view),
 ]

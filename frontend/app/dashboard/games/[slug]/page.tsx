@@ -310,7 +310,6 @@ export default function GameDetailsPage() {
 
   return (
     <div className="relative min-h-screen text-white">
-      {/* ── Hero ── */}
       <div className="relative w-full h-64 md:h-[420px] overflow-hidden">
         <Image src={game.background_image} alt="" fill className="object-cover scale-110 blur-md opacity-25" aria-hidden />
         <Image src={game.background_image} alt={game.name} fill className="object-cover object-center" priority />
@@ -325,11 +324,9 @@ export default function GameDetailsPage() {
         </button>
       </div>
 
-      {/* ── Main content ── */}
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="flex flex-col md:flex-row gap-10 -mt-16 md:-mt-24 relative z-10">
 
-          {/* ── Left column ── */}
           <div className="flex-1 min-w-0">
             <div className="mb-6">
               <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-2" style={{ fontFamily: "var(--font-syne)" }}>
@@ -384,11 +381,9 @@ export default function GameDetailsPage() {
             )}
           </div>
 
-          {/* ── Right sidebar ── */}
           <div className="w-full md:w-72 shrink-0 flex flex-col gap-4">
             <div className="rounded-2xl overflow-visible md:sticky md:top-6" style={{ background: "rgb(13,14,22)", border: "1px solid rgba(255,255,255,0.08)" }}>
 
-              {/* Price + metacritic */}
               <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
                 <div>
                   <p className="text-[10px] text-white/30 mb-0.5 uppercase tracking-wider">Price</p>
@@ -404,10 +399,8 @@ export default function GameDetailsPage() {
                 )}
               </div>
 
-              {/* Library actions */}
               <div className="p-5 space-y-4">
 
-                {/* In-library badge */}
                 {inLibrary && (
                   <div
                     className="flex items-center gap-2 px-3 py-2 rounded-lg"
@@ -418,7 +411,6 @@ export default function GameDetailsPage() {
                   </div>
                 )}
 
-                {/* Status dropdown */}
                 <div>
                   <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">
                     {inLibrary ? "Status" : "Add as"}
@@ -430,7 +422,6 @@ export default function GameDetailsPage() {
                   )}
                 </div>
 
-                {/* Rating — only when in library */}
                 {inLibrary && (
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
@@ -470,7 +461,6 @@ export default function GameDetailsPage() {
                   </div>
                 )}
 
-                {/* Favourite — only when in library */}
                 {inLibrary && (
                   <button
                     onClick={handleFavouriteToggle}
@@ -488,7 +478,6 @@ export default function GameDetailsPage() {
                   </button>
                 )}
 
-                {/* Add / Update button */}
                 <button
                   onClick={handleSave}
                   disabled={saving}
@@ -509,7 +498,6 @@ export default function GameDetailsPage() {
                   )}
                 </button>
 
-                {/* Remove — only when in library */}
                 {inLibrary && (
                   <button
                     onClick={handleRemove}
@@ -525,7 +513,6 @@ export default function GameDetailsPage() {
                 )}
               </div>
 
-              {/* Meta info */}
               <div className="px-5 pb-5 space-y-3 text-sm border-t" style={{ borderColor: "rgba(255,255,255,0.07)", paddingTop: "1.25rem" }}>
                 {game.developers?.length > 0 && (
                   <div className="flex justify-between gap-3">

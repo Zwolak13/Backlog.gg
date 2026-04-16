@@ -8,6 +8,10 @@ from .library_views import (
     library_stats_view,
     library_check_view,
     friends_ratings_view,
+    public_library_view,
+    public_library_stats_view,
+    public_library_recent_view,
+    public_library_favourites_view,
 )
 
 urlpatterns = [
@@ -18,6 +22,10 @@ urlpatterns = [
     path("library/stats/", library_stats_view),
     path("library/check/<int:game_id>/", library_check_view),
     path("library/friends-ratings/<int:game_id>/", friends_ratings_view),
+    path("library/public/<str:username>/stats/", public_library_stats_view),
+    path("library/public/<str:username>/recent/", public_library_recent_view),
+    path("library/public/<str:username>/favourites/", public_library_favourites_view),
+    path("library/public/<str:username>/", public_library_view),
     path("library/<int:pk>/", library_item_view),
     path("<int:appid>/", game_details_view),
 ]
