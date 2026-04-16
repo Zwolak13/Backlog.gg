@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Lock, ShieldAlert, ChevronRight } from "lucide-react";
+import { User, Lock, ShieldAlert, ChevronRight, SlidersHorizontal, ShieldCheck, ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 
-type Section = "profile" | "account" | "danger";
+type Section = "profile" | "account" | "preferences" | "danger";
 
 const NAV: { key: Section; label: string; icon: React.ReactNode; description: string }[] = [
   {
@@ -20,6 +20,12 @@ const NAV: { key: Section; label: string; icon: React.ReactNode; description: st
     label: "Account",
     icon: <Lock size={16} />,
     description: "Password & security",
+  },
+  {
+    key: "preferences",
+    label: "Preferences",
+    icon: <SlidersHorizontal size={16} />,
+    description: "Content & display",
   },
   {
     key: "danger",
@@ -36,6 +42,17 @@ export default function SettingsPage() {
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+
+  const [safeMode, setSafeMode] = useState(true);
+  useEffect(() => {
+    const stored = localStorage.getItem("backlog_safe_mode");
+    if (stored !== null) setSafeMode(stored !== "0");
+  }, []);
+  const toggleSafe = () => setSafeMode((v) => {
+    const next = !v;
+    localStorage.setItem("backlog_safe_mode", next ? "1" : "0");
+    return next;
+  });
 
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
@@ -88,38 +105,45 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen text-white flex flex-col">
-      <div className="border-b border-white/10 px-8 py-6 bg-[rgba(14,15,22,0.8)]">
-        <h1 className="text-xl font-bold text-white/90 tracking-tight">Account Settings</h1>
-        <p className="text-white/40 text-sm mt-0.5">Manage your Backlog.gg profile and account</p>
+      <div
+        className="relative border-b px-8 py-6 overflow-hidden"
+        style={{ background: "rgb(11,12,19)", borderColor: "rgba(255,255,255,0.08)" }}
+      >
+        <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: "linear-gradient(to right, transparent 0%, rgba(135,86,241,0.6) 20%, rgba(85,54,218,0.8) 50%, rgba(135,86,241,0.6) 80%, transparent 100%)" }} />
+        <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: "repeating-linear-gradient(45deg, rgba(255,255,255,1) 0, rgba(255,255,255,1) 1px, transparent 0, transparent 50%)", backgroundSize: "18px 18px" }} />
+        <div className="relative">
+          <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: "var(--font-syne)" }}>Account Settings</h1>
+          <p className="text-white/40 text-sm mt-0.5">Manage your Backlog.gg profile and account</p>
+        </div>
       </div>
 
       <div className="flex flex-1">
-        <aside className="w-60 shrink-0 border-r border-white/10 p-4 bg-[rgba(14,15,22,0.4)]">
-          <p className="text-white/30 text-xs uppercase tracking-widest font-semibold px-3 mb-3">
+        <aside
+          className="w-60 shrink-0 border-r p-4"
+          style={{ background: "rgb(10,11,17)", borderColor: "rgba(255,255,255,0.07)" }}
+        >
+          <p className="text-white/25 text-[10px] uppercase tracking-[0.15em] font-bold px-3 mb-3">
             Settings
           </p>
           {NAV.map((item) => (
             <button
               key={item.key}
               onClick={() => setActive(item.key)}
-              className={`
-                w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-all mb-1 group
-                ${
-                  active === item.key
-                    ? "bg-[var(--backlog-purple)]/15 border border-[var(--backlog-purple)]/25 text-white"
-                    : "text-white/55 hover:bg-white/5 hover:text-white/80 border border-transparent"
-                }
-              `}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all mb-1 group"
+              style={active === item.key
+                ? { background: "linear-gradient(135deg, rgba(135,86,241,0.15), rgba(85,54,218,0.1))", border: "1px solid rgba(135,86,241,0.25)", color: "white" }
+                : { background: "transparent", border: "1px solid transparent", color: "rgba(255,255,255,0.45)" }
+              }
             >
-              <span className={active === item.key ? "text-[var(--backlog-purple)]" : "text-white/40 group-hover:text-white/60"}>
+              <span style={{ color: active === item.key ? "var(--backlog-purple)" : "rgba(255,255,255,0.3)" }}>
                 {item.icon}
               </span>
               <div className="flex flex-col min-w-0">
                 <span className="text-sm font-medium leading-none mb-0.5">{item.label}</span>
-                <span className="text-xs text-white/30 truncate">{item.description}</span>
+                <span className="text-xs text-white/25 truncate">{item.description}</span>
               </div>
               {active === item.key && (
-                <ChevronRight size={14} className="ml-auto text-[var(--backlog-purple)]/60 shrink-0" />
+                <ChevronRight size={13} className="ml-auto shrink-0" style={{ color: "rgba(135,86,241,0.6)" }} />
               )}
             </button>
           ))}
@@ -129,19 +153,27 @@ export default function SettingsPage() {
 
           {active === "profile" && (
             <div>
-              <SectionHeader title="Profile" subtitle="Customize how others see you" />
+              <SectionHeader title="Profile" subtitle="Customize how others see you" icon={<User size={15} />} />
 
-              <div className="flex items-start gap-5 mb-7 p-5 rounded-xl bg-white/[0.03] border border-white/10">
-                <img
-                  src={
-                    avatarUrl ||
-                    `https://api.dicebear.com/7.x/identicon/svg?seed=${username}`
-                  }
-                  alt="avatar preview"
-                  className="w-20 h-20 rounded object-cover bg-white/10 border border-white/10 shrink-0"
-                />
-                <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-xs text-white/40 uppercase tracking-widest">
+              <div
+                className="flex items-start gap-5 mb-7 p-5 rounded-xl"
+                style={{ background: "rgba(135,86,241,0.05)", border: "1px solid rgba(135,86,241,0.15)" }}
+              >
+                <div className="relative shrink-0">
+                  <div className="p-0.5 rounded-lg" style={{ background: "linear-gradient(135deg, rgba(135,86,241,0.6), rgba(85,54,218,0.4))" }}>
+                    <img
+                      src={avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${username}`}
+                      alt="avatar preview"
+                      className="w-20 h-20 rounded-[6px] object-cover block"
+                      style={{ background: "rgb(28,30,42)" }}
+                    />
+                  </div>
+                  <div className="absolute -bottom-1.5 left-0 right-0 flex justify-center">
+                    <span className="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: "rgba(135,86,241,0.2)", color: "rgba(167,139,250,0.8)", border: "1px solid rgba(135,86,241,0.2)" }}>Preview</span>
+                  </div>
+                </div>
+                <div className="flex-1 flex flex-col gap-2 pt-1">
+                  <label className="text-[10px] text-white/40 uppercase tracking-[0.12em] font-semibold">
                     Avatar URL
                   </label>
                   <SettingsInput
@@ -149,7 +181,7 @@ export default function SettingsPage() {
                     onChange={setAvatarUrl}
                     placeholder="https://example.com/avatar.png"
                   />
-                  <p className="text-white/25 text-xs">Paste any direct image link.</p>
+                  <p className="text-white/25 text-xs">Paste any direct image link. Updates preview above.</p>
                 </div>
               </div>
 
@@ -164,20 +196,18 @@ export default function SettingsPage() {
                     onChange={(e) => setBio(e.target.value)}
                     rows={4}
                     placeholder="Tell the world about yourself…"
-                    className="
-                      w-full p-3 rounded-lg text-sm resize-none
-                      bg-white/[0.04] border border-white/10
-                      text-white/80 placeholder:text-white/20
-                      focus:outline-none focus:border-[var(--backlog-purple)]/50
-                      transition-colors
-                    "
+                    className="w-full p-3 rounded-lg text-sm resize-none text-white/80 placeholder:text-white/20 focus:outline-none transition-colors"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}
+                    onFocus={e => (e.target.style.borderColor = "rgba(135,86,241,0.5)")}
+                    onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
                   />
                 </SettingsField>
               </div>
 
               <Button
                 onClick={handleSaveProfile}
-                className="bg-[var(--backlog-purple)] hover:bg-[var(--backlog-indigo)] text-white px-6"
+                className="text-white px-6 font-semibold"
+                style={{ background: "linear-gradient(135deg, var(--backlog-purple), var(--backlog-indigo))", boxShadow: "0 2px 16px rgba(135,86,241,0.3)" }}
               >
                 Save Changes
               </Button>
@@ -186,12 +216,16 @@ export default function SettingsPage() {
 
           {active === "account" && (
             <div>
-              <SectionHeader title="Account Security" subtitle="Update your login credentials" />
+              <SectionHeader title="Account Security" subtitle="Update your login credentials" icon={<Lock size={15} />} />
 
               <div
-                className="p-5 rounded-xl border border-white/10 bg-white/[0.03] mb-8"
+                className="p-5 rounded-xl mb-8"
+                style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}
               >
-                <h3 className="text-sm font-semibold text-white/80 mb-4">Change Password</h3>
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-1 h-4 rounded-full" style={{ background: "linear-gradient(to bottom, var(--backlog-purple), var(--backlog-indigo))" }} />
+                  <h3 className="text-sm font-semibold text-white/80">Change Password</h3>
+                </div>
                 <div className="flex flex-col gap-4">
                   <SettingsField label="Current Password">
                     <SettingsInput
@@ -221,7 +255,8 @@ export default function SettingsPage() {
 
                 <Button
                   onClick={handleChangePassword}
-                  className="mt-5 bg-[var(--backlog-purple)] hover:bg-[var(--backlog-indigo)] text-white px-6"
+                  className="mt-5 text-white px-6 font-semibold"
+                  style={{ background: "linear-gradient(135deg, var(--backlog-purple), var(--backlog-indigo))", boxShadow: "0 2px 16px rgba(135,86,241,0.3)" }}
                 >
                   Update Password
                 </Button>
@@ -229,13 +264,44 @@ export default function SettingsPage() {
             </div>
           )}
 
+          {active === "preferences" && (
+            <div>
+              <SectionHeader title="Preferences" subtitle="Customize your browsing experience" icon={<SlidersHorizontal size={15} />} />
+
+              <div
+                className="p-5 rounded-xl"
+                style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}
+              >
+                <div className="flex items-center justify-between gap-6">
+                  <div>
+                    <p className="text-sm font-semibold text-white/85 mb-1">Safe Mode</p>
+                    <p className="text-xs text-white/35 leading-relaxed">
+                      Hide adult and 18+ content from browse and search results.
+                    </p>
+                  </div>
+                  <button
+                    onClick={toggleSafe}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 shrink-0"
+                    style={safeMode
+                      ? { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", color: "#34d399", boxShadow: "0 0 12px rgba(52,211,153,0.1)" }
+                      : { background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.25)", color: "rgba(255,100,100,0.9)" }
+                    }
+                  >
+                    {safeMode ? <ShieldCheck size={15} /> : <ShieldOff size={15} />}
+                    {safeMode ? "On" : "Off"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {active === "danger" && (
             <div>
-              <SectionHeader title="Danger Zone" subtitle="Irreversible actions — proceed with caution" />
+              <SectionHeader title="Danger Zone" subtitle="Irreversible actions — proceed with caution" icon={<ShieldAlert size={15} />} />
 
-              <div className="rounded-xl border border-red-500/20 bg-red-500/[0.04] p-6">
+              <div className="rounded-xl p-6" style={{ border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.04)" }}>
                 <div className="flex items-start gap-4">
-                  <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 shrink-0">
+                  <div className="p-2.5 rounded-lg shrink-0" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
                     <ShieldAlert size={18} className="text-red-400" />
                   </div>
                   <div className="flex-1">
@@ -262,11 +328,18 @@ export default function SettingsPage() {
   );
 }
 
-function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
+function SectionHeader({ title, subtitle, icon }: { title: string; subtitle: string; icon?: React.ReactNode }) {
   return (
-    <div className="mb-7 pb-4 border-b border-white/10">
-      <h2 className="text-lg font-semibold text-white/90">{title}</h2>
-      <p className="text-white/40 text-sm mt-0.5">{subtitle}</p>
+    <div className="mb-7 pb-5 border-b" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+      <div className="flex items-center gap-3 mb-1">
+        {icon && (
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(135,86,241,0.15)", color: "var(--backlog-purple)", border: "1px solid rgba(135,86,241,0.2)" }}>
+            {icon}
+          </div>
+        )}
+        <h2 className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-syne)" }}>{title}</h2>
+      </div>
+      <p className="text-white/38 text-sm" style={{ paddingLeft: icon ? "2.5rem" : "0" }}>{subtitle}</p>
     </div>
   );
 }
@@ -274,7 +347,7 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle: string })
 function SettingsField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-xs text-white/40 uppercase tracking-widest mb-2 block">
+      <label className="text-[10px] text-white/38 uppercase tracking-[0.12em] font-semibold mb-2 block">
         {label}
       </label>
       {children}
@@ -299,13 +372,10 @@ function SettingsInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="
-        w-full p-3 rounded-lg text-sm
-        bg-white/[0.04] border border-white/10
-        text-white/80 placeholder:text-white/20
-        focus:outline-none focus:border-[var(--backlog-purple)]/50
-        transition-colors
-      "
+      className="w-full p-3 rounded-lg text-sm text-white/85 placeholder:text-white/20 focus:outline-none transition-colors"
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)" }}
+      onFocus={e => (e.target.style.borderColor = "rgba(135,86,241,0.5)")}
+      onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.09)")}
     />
   );
 }

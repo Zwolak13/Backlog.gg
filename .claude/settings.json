@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py *)",
+      "Bash(npm run *)",
+      "Bash(npx shadcn *)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git status*)"
+    ],
+    "deny": []
+  }
+}

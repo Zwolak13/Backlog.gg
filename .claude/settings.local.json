@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(statusline)",
+      "Skill(update-config)",
+      "Bash(curl -s \"http://localhost:8000/api/games/\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('mode:', d.get\\('mode'\\)\\); [print\\(f'  {s[\\\\\"emoji\\\\\"]} {s[\\\\\"title\\\\\"]}: {len\\(s[\\\\\"games\\\\\"]\\)} games'\\) for s in d.get\\('sections',[]\\)]\")",
+      "Bash(curl -s http://localhost:3000/dashboard/games -o /dev/null -w \"%{http_code}\")",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

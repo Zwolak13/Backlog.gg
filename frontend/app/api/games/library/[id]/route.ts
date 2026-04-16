@@ -13,10 +13,11 @@ async function getCookies() {
   };
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   const body = await req.json();
   const { cookie, csrf } = await getCookies();
-  const res = await fetch(`http://localhost:8000/api/games/library/${params.id}/`, {
+  const res = await fetch(`http://localhost:8000/api/games/library/${id}/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", Cookie: cookie, "X-CSRFToken": csrf },
     body: JSON.stringify(body),
@@ -25,9 +26,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   return NextResponse.json(data, { status: res.status });
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   const { cookie, csrf } = await getCookies();
-  const res = await fetch(`http://localhost:8000/api/games/library/${params.id}/`, {
+  const res = await fetch(`http://localhost:8000/api/games/library/${id}/`, {
     method: "DELETE",
     headers: { Cookie: cookie, "X-CSRFToken": csrf },
   });

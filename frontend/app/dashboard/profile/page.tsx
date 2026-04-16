@@ -14,22 +14,32 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<Tab>("Games");
 
   return (
-    <div className="w-full min-h-screen">
+    <div className="w-full min-h-screen text-white" style={{ background: "rgb(10,11,17)" }}>
       <ProfileHeader activeTab={activeTab} onTabChange={(t) => setActiveTab(t as Tab)} />
 
-      <div className="flex flex-col lg:flex-row gap-6 px-6 md:px-10 py-8 w-full mx-auto">
+      <div className="flex flex-col lg:flex-row gap-6 px-8 md:px-12 py-8 w-full">
         <div className="flex-1 min-w-0">
-          {activeTab === "Games" && <ProfileGameList />}
-
+          {activeTab === "Games"    && <ProfileGameList />}
+          {activeTab === "Library"  && <ProfileLibrary />}
           {activeTab === "Activity" && (
-            <EmptyTab
-              icon={<Clock4 size={36} className="text-white/20" />}
-              title="No activity yet"
-              sub="Your recent game sessions will appear here."
-            />
+            <div
+              className="flex flex-col items-center justify-center py-28 gap-4 rounded-2xl"
+              style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.07)" }}
+            >
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                style={{ background: "rgba(135,86,241,0.1)", border: "1px solid rgba(135,86,241,0.2)" }}
+              >
+                <Clock4 size={26} style={{ color: "var(--backlog-purple)" }} />
+              </div>
+              <div className="text-center">
+                <p className="text-white/50 font-semibold mb-1">No activity yet</p>
+                <p className="text-white/25 text-sm max-w-xs">
+                  Your recent game sessions will appear here.
+                </p>
+              </div>
+            </div>
           )}
-
-          {activeTab === "Library" && <ProfileLibrary />}
         </div>
 
         <div className="w-full lg:w-64 shrink-0 flex flex-col gap-4">
@@ -37,16 +47,6 @@ export default function ProfilePage() {
           <FriendsPanel />
         </div>
       </div>
-    </div>
-  );
-}
-
-function EmptyTab({ icon, title, sub }: { icon: React.ReactNode; title: string; sub: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-      {icon}
-      <p className="text-white/40 font-medium">{title}</p>
-      <p className="text-white/25 text-sm max-w-xs">{sub}</p>
     </div>
   );
 }
