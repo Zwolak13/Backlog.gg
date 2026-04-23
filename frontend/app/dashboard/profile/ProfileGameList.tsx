@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Gamepad2, Star } from "lucide-react";
 import Link from "next/link";
 import { useRecentGames, useFavouriteGames, LibraryGame } from "@/hooks/useLibrary";
@@ -11,12 +12,48 @@ const STATUS_COLORS: Record<string, string> = {
   wishlist:  "#a78bfa",
 };
 
+const PROFILE_TILE_WIDTH = 292;
+const PROFILE_TILE_HEIGHT = 166;
+
+function useHorizontalDrag() {
+  const ref = useRef<HTMLDivElement>(null);
+  const moved = useRef(false);
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    const element = ref.current;
+    if (!element) return;
+
+    moved.current = false;
+    const startX = event.clientX;
+    const startScroll = element.scrollLeft;
+    element.setPointerCapture(event.pointerId);
+    element.style.cursor = "grabbing";
+
+    const onPointerMove = (moveEvent: PointerEvent) => {
+      const dx = moveEvent.clientX - startX;
+      if (Math.abs(dx) > 4) moved.current = true;
+      element.scrollLeft = startScroll - dx;
+    };
+
+    const onPointerUp = () => {
+      element.style.cursor = "grab";
+      document.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerup", onPointerUp);
+    };
+
+    document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("pointerup", onPointerUp);
+  };
+
+  return { ref, moved, onPointerDown };
+}
+
 export default function ProfileGameList() {
   const { games: recentGames,    loading: recentLoading } = useRecentGames();
   const { games: favouriteGames, loading: favLoading    } = useFavouriteGames();
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="h-full min-h-0 flex flex-col justify-between gap-5">
       <GameSection
         icon={<Gamepad2 size={14} />}
         title="Recent Activity"
@@ -41,9 +78,11 @@ function GameSection({
   games: LibraryGame[];
   loading: boolean;
 }) {
+  const { ref, moved, onPointerDown } = useHorizontalDrag();
+
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-5">
+    <div className="min-h-0">
+      <div className="flex items-center gap-3 mb-3">
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
           style={{ background: "rgba(135,86,241,0.15)", border: "1px solid rgba(135,86,241,0.2)", color: "var(--backlog-purple)" }}
@@ -69,39 +108,42 @@ function GameSection({
 
       {loading ? (
         <div
-          className="flex gap-3"
-          style={{ overflowX: "auto", overflowY: "clip", paddingTop: 12, paddingBottom: 16 }}
+          className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden"
+          style={{ overflowY: "clip", paddingTop: 6, paddingBottom: 8, scrollbarWidth: "none" }}
         >
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
               className="flex-none rounded-xl animate-pulse"
-              style={{ width: 260, height: 156, background: "rgba(255,255,255,0.04)" }}
+              style={{ width: PROFILE_TILE_WIDTH, height: PROFILE_TILE_HEIGHT, background: "rgba(255,255,255,0.04)" }}
             />
           ))}
         </div>
       ) : games.length === 0 ? (
         <div
-          className="flex flex-col items-center justify-center py-14 gap-3 rounded-2xl"
+          className="flex flex-col items-center justify-center py-9 gap-3 rounded-2xl"
           style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.07)" }}
         >
           <p className="text-white/25 text-sm">No games here yet.</p>
         </div>
       ) : (
         <div
-          className="flex gap-3"
+          ref={ref}
+          className="flex gap-3 overflow-x-auto select-none [&::-webkit-scrollbar]:hidden"
           style={{
-            overflowX: "auto",
             overflowY: "clip",
-            paddingTop: 12,
-            paddingBottom: 16,
-            scrollbarWidth: "thin",
-            scrollbarColor: "rgba(135,86,241,0.25) transparent",
+            paddingTop: 6,
+            paddingBottom: 8,
+            scrollbarWidth: "none",
+            cursor: "grab",
+            userSelect: "none",
+            WebkitUserSelect: "none",
           }}
+          onPointerDown={onPointerDown}
         >
           {games.map((ug) => (
             <div key={ug.id} className="flex-none">
-              <GameCard userGame={ug} />
+              <GameCard userGame={ug} dragging={moved} />
             </div>
           ))}
         </div>
@@ -110,25 +152,31 @@ function GameSection({
   );
 }
 
-function GameCard({ userGame }: { userGame: LibraryGame }) {
+function GameCard({ userGame, dragging }: { userGame: LibraryGame; dragging?: React.MutableRefObject<boolean> }) {
   const { game, rating, status, is_favourite } = userGame;
   const statusColor = STATUS_COLORS[status] ?? "rgba(255,255,255,0.4)";
 
   return (
-    <Link href={`/dashboard/games/${game.id}`}>
+    <Link
+      href={`/dashboard/games/${game.id}`}
+      onClick={(event) => {
+        if (dragging?.current) event.preventDefault();
+      }}
+      draggable={false}
+    >
       <div
         className="group cursor-pointer select-none"
         style={{
-          width: 260,
+          width: PROFILE_TILE_WIDTH,
           transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1)",
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-8px)"; }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-5px)"; }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; }}
       >
         <div
           className="relative rounded-xl overflow-hidden"
           style={{
-            height: 156,
+            height: PROFILE_TILE_HEIGHT,
             background: "rgb(18,20,32)",
             transition: "box-shadow 0.25s ease, border-color 0.25s ease",
             border: "1px solid rgba(255,255,255,0.07)",
@@ -148,6 +196,7 @@ function GameCard({ userGame }: { userGame: LibraryGame }) {
               src={game.background_image}
               alt={game.name}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              draggable={false}
             />
           ) : (
             <div
@@ -191,13 +240,13 @@ function GameCard({ userGame }: { userGame: LibraryGame }) {
           )}
 
           <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-8">
-            <p className="text-white text-sm font-semibold leading-snug line-clamp-1 mb-1.5">
+            <p className="text-white text-sm font-semibold leading-snug line-clamp-1 mb-1">
               {game.name}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between mt-2.5 px-1">
+        <div className="flex items-center justify-between mt-2 px-1">
           <div className="flex items-center gap-2">
             <span
               className="w-2 h-2 rounded-full flex-none"
