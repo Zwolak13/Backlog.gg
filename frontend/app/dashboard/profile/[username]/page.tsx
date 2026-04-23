@@ -130,7 +130,6 @@ export default function FriendProfilePage({ params }: { params: Promise<{ userna
   }, [username]);
 
   useEffect(() => {
-    setLibraryLoading(true);
     const url = libraryFilter === "all"
       ? `/api/games/library/public/${username}`
       : `/api/games/library/public/${username}?status=${libraryFilter}`;

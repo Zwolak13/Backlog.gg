@@ -1,3 +1,4 @@
+﻿import { DJANGO_API_URL } from "@/lib/server-api";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request, context: { params: Promise<{ username: string }> }) {
@@ -5,8 +6,8 @@ export async function GET(req: Request, context: { params: Promise<{ username: s
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
   const url = status
-    ? `http://localhost:8000/api/games/library/public/${username}/?status=${status}`
-    : `http://localhost:8000/api/games/library/public/${username}/`;
+    ? `${DJANGO_API_URL}/games/library/public/${username}/?status=${status}`
+    : `${DJANGO_API_URL}/games/library/public/${username}/`;
   try {
     const res = await fetch(url);
     const data = await res.json();
@@ -15,3 +16,4 @@ export async function GET(req: Request, context: { params: Promise<{ username: s
     return NextResponse.json({ games: [] }, { status: 200 });
   }
 }
+

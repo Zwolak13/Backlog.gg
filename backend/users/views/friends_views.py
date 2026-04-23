@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from ..models import User, Friendship, FriendRequest
+from ..friendships import friendship_query, get_friend_ids
 
 
 def serialize_friend(user):
@@ -16,7 +17,7 @@ def serialize_friend(user):
 
 def get_friends(user):
     friendships = Friendship.objects.filter(
-        Q(from_user=user) | Q(to_user=user)
+        friendship_query(user)
     ).select_related("from_user", "to_user")
     seen = set()
     result = []
@@ -87,7 +88,7 @@ def search_users_view(request):
 
     users = User.objects.filter(username__icontains=q).exclude(id=request.user.id)[:10]
 
-    friend_ids = set(Friendship.objects.filter(from_user=request.user).values_list("to_user_id", flat=True))
+    friend_ids = get_friend_ids(request.user)
     sent_ids = set(FriendRequest.objects.filter(from_user=request.user, status="pending").values_list("to_user_id", flat=True))
     received_ids = set(FriendRequest.objects.filter(to_user=request.user, status="pending").values_list("from_user_id", flat=True))
 

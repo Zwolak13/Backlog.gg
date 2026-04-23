@@ -1,3 +1,4 @@
+﻿import { DJANGO_API_URL } from "@/lib/server-api";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -15,7 +16,7 @@ async function getCookies() {
 
 export async function GET() {
   const { cookie } = await getCookies();
-  const res = await fetch("http://localhost:8000/api/user/friends/", {
+  const res = await fetch(`${DJANGO_API_URL}/user/friends/`, {
     headers: { Cookie: cookie },
   });
   const data = await res.json();
@@ -25,7 +26,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const body = await req.json();
   const { cookie, csrf } = await getCookies();
-  const res = await fetch("http://localhost:8000/api/user/friends/add/", {
+  const res = await fetch(`${DJANGO_API_URL}/user/friends/add/`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Cookie: cookie, "X-CSRFToken": csrf },
     body: JSON.stringify(body),
@@ -33,3 +34,4 @@ export async function POST(req: Request) {
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
+

@@ -1,3 +1,4 @@
+﻿import { DJANGO_API_URL } from "@/lib/server-api";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -9,9 +10,10 @@ export async function GET(req: Request) {
     .filter(Boolean)
     .join("; ");
   const q = new URL(req.url).searchParams.get("q") ?? "";
-  const res = await fetch(`http://localhost:8000/api/user/search/?q=${encodeURIComponent(q)}`, {
+  const res = await fetch(`${DJANGO_API_URL}/user/search/?q=${encodeURIComponent(q)}`, {
     headers: { Cookie: cookieHeader },
   });
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
+

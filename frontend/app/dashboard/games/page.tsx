@@ -8,7 +8,6 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import GameSkeleton from "@/components/dashboard/GameSkeleton";
 
 interface Game {
   id: number;
@@ -291,19 +290,23 @@ export default function GamesPage() {
   const [searchLoading, setSearchLoading]   = useState(false);
   const [browseLoading, setBrowseLoading]   = useState(true);
   const [searchOpen, setSearchOpen]         = useState(false);
-  const [safeMode, setSafeMode]             = useState(true);
+  const [safeMode]                          = useState(() => {
+    if (typeof window === "undefined") return true;
+    const stored = window.localStorage.getItem("backlog_safe_mode");
+    return stored === null ? true : stored !== "0";
+  });
   const inputRef                            = useRef<HTMLInputElement>(null);
   const sentinelRef                         = useRef<HTMLDivElement>(null);
   const queryRef                            = useRef(query);
   const safeModeRef                         = useRef(safeMode);
-  queryRef.current   = query;
-  safeModeRef.current = safeMode;
 
-  // Read safe mode preference set in Settings
   useEffect(() => {
-    const stored = localStorage.getItem("backlog_safe_mode");
-    if (stored !== null) setSafeMode(stored !== "0");
-  }, []);
+    queryRef.current = query;
+  }, [query]);
+
+  useEffect(() => {
+    safeModeRef.current = safeMode;
+  }, [safeMode]);
 
   useEffect(() => {
     fetchBrowse(safeMode).then((d) => { if (d?.mode === "browse") setSections(d.sections); setBrowseLoading(false); });
@@ -321,12 +324,16 @@ export default function GamesPage() {
 
   useEffect(() => {
     if (!query) return;
-    setSearchResults([]); setPage(1); setHasMore(false);
-    const t = setTimeout(() => loadSearch(query, 1, true), 350);
+    const t = setTimeout(() => {
+      setSearchResults([]);
+      setPage(1);
+      setHasMore(false);
+      loadSearch(query, 1, true);
+    }, 350);
     return () => clearTimeout(t);
   }, [query, loadSearch]);
 
-  useEffect(() => { if (page > 1 && query) loadSearch(queryRef.current, page, false); }, [page, loadSearch]);
+  useEffect(() => { if (page > 1 && queryRef.current) loadSearch(queryRef.current, page, false); }, [page, loadSearch]);
 
   useEffect(() => {
     const el = sentinelRef.current; if (!el) return;
@@ -416,7 +423,7 @@ export default function GamesPage() {
                 ))}
               </div>
             ) : searchResults.length === 0 && !searchLoading ? (
-              <p className="text-white/25 py-16 text-center text-sm">No games found for "{query}"</p>
+              <p className="text-white/25 py-16 text-center text-sm">No games found for &quot;{query}&quot;</p>
             ) : (
               <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
                 {searchResults.map((game) => <SearchCard key={game.id} game={game} />)}

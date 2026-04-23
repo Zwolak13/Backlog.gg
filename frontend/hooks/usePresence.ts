@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { WS_BACKEND_URL } from "@/lib/config";
 
 export function usePresence(): Set<string> {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/ws/presence/");
+    const ws = new WebSocket(`${WS_BACKEND_URL}/ws/presence/`);
     wsRef.current = ws;
 
     ws.onmessage = (event) => {

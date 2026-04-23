@@ -1,3 +1,4 @@
+﻿import { DJANGO_API_URL } from "@/lib/server-api";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -17,7 +18,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
   const { id } = await context.params;
   const body = await req.json();
   const { cookie, csrf } = await getCookies();
-  const res = await fetch(`http://localhost:8000/api/games/library/${id}/`, {
+  const res = await fetch(`${DJANGO_API_URL}/games/library/${id}/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", Cookie: cookie, "X-CSRFToken": csrf },
     body: JSON.stringify(body),
@@ -29,10 +30,11 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
 export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   const { cookie, csrf } = await getCookies();
-  const res = await fetch(`http://localhost:8000/api/games/library/${id}/`, {
+  const res = await fetch(`${DJANGO_API_URL}/games/library/${id}/`, {
     method: "DELETE",
     headers: { Cookie: cookie, "X-CSRFToken": csrf },
   });
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
+

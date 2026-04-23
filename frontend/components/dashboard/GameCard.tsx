@@ -1,14 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+interface DashboardGameCard {
+  id: number;
+  name: string;
+  background_image?: string | null;
+}
 
 export default function GameCard({
   game,
   dragging,
 }: {
-  game: any;
+  game: DashboardGameCard;
   dragging?: React.MutableRefObject<boolean>;
 }) {
   const router = useRouter();

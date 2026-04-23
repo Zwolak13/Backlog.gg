@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-
-const DJANGO = "http://localhost:8000";
+import { DJANGO_API_URL } from "@/lib/server-api";
 
 async function cookieHeader() {
   const store = await cookies();
@@ -19,8 +18,8 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
   const url = status
-    ? `${DJANGO}/api/games/library/?status=${status}`
-    : `${DJANGO}/api/games/library/`;
+    ? `${DJANGO_API_URL}/games/library/?status=${status}`
+    : `${DJANGO_API_URL}/games/library/`;
   const { cookie } = await cookieHeader();
   const res = await fetch(url, { headers: { Cookie: cookie } });
   const data = await res.json();
@@ -30,7 +29,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const body = await req.json();
   const { cookie, csrf } = await cookieHeader();
-  const res = await fetch(`${DJANGO}/api/games/library/`, {
+  const res = await fetch(`${DJANGO_API_URL}/games/library/`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Cookie: cookie, "X-CSRFToken": csrf },
     body: JSON.stringify(body),

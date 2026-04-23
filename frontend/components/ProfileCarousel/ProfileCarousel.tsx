@@ -2,7 +2,13 @@
 
 import ProfileGameCard from "@/app/dashboard/profile/ProfileGameCard";
 
-export default function ProfileCarousel({ items }: { items: any[] }) {
+interface ProfileCarouselGame {
+  title: string;
+  cover: string | { src?: string } | null | undefined;
+  rating?: number;
+}
+
+export default function ProfileCarousel({ items }: { items: ProfileCarouselGame[] }) {
   return (
     <div
       className="flex gap-4 overflow-x-auto pb-3"

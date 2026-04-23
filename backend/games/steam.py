@@ -115,6 +115,10 @@ def get_featured_sections(safe: bool = True) -> list[dict]:
                 "background_image": item.get("large_capsule_image") or header_image(appid),
                 "portrait_image": portrait_image(appid),
                 "metacritic": None,
+                "discount_percent": item.get("discount_percent") or None,
+                "original_price": item.get("original_price"),
+                "final_price": item.get("final_price"),
+                "currency": item.get("currency") or "USD",
             })
         if games:
             sections.append({"id": key, "title": title, "games": games})

@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import list_games_view, game_details_view
+from .dashboard_views import bundles_view, deals_view, friends_activity_view
 from .library_views import (
     library_view,
     library_item_view,
@@ -16,6 +17,9 @@ from .library_views import (
 
 urlpatterns = [
     path("", list_games_view),
+    path("deals/", deals_view),
+    path("bundles/", bundles_view),
+    path("activity/friends/", friends_activity_view),
     path("library/", library_view),
     path("library/recent/", library_recent_view),
     path("library/favourites/", library_favourites_view),

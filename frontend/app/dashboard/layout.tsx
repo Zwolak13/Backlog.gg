@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       else setLoading(false);
     };
     fetchUser();
-  }, []);
+  }, [router]);
 
   if (loading) return <FullscreenLoader />;
 

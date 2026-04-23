@@ -6,7 +6,7 @@ import { getGameDetails } from "@/lib/api";
 import Image from "next/image";
 import { toastSuccess, toastError } from "@/lib/toast";
 import {
-  Clock, Gamepad2, CheckCircle2, Heart,
+  Gamepad2, CheckCircle2, Heart,
   ExternalLink, ChevronLeft, Plus, Star,
   ChevronDown, Trash2, RefreshCw, BookMarked, Users,
 } from "lucide-react";
@@ -32,6 +32,48 @@ interface FriendRating {
   avatar_url: string | null;
   rating: number | null;
   status: string;
+}
+
+interface GameGenre {
+  id: number | string;
+  name: string;
+}
+
+interface GamePlatform {
+  platform?: {
+    name?: string;
+  };
+}
+
+interface GameDetails {
+  id: number;
+  slug: string;
+  name: string;
+  background_image: string;
+  metacritic: number | null;
+  description_raw?: string;
+  genres: GameGenre[];
+  platforms: GamePlatform[];
+  screenshots: string[];
+  released?: string;
+  developers: string[];
+  publishers: string[];
+  is_free?: boolean;
+  price?: string;
+  website?: string;
+}
+
+interface LibraryCheckResponse {
+  in_library: boolean;
+  entry: LibraryEntry | null;
+}
+
+interface LibraryEntryResponse extends LibraryEntry {
+  error?: string;
+}
+
+interface FriendRatingsResponse {
+  ratings?: FriendRating[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -205,7 +247,7 @@ export default function GameDetailsPage() {
   const router = useRouter();
   const appid = Array.isArray(params?.slug) ? params.slug[0] : params?.slug;
 
-  const [game, setGame]               = useState<any>(null);
+  const [game, setGame]               = useState<GameDetails | null>(null);
   const [loading, setLoading]         = useState(true);
   const [entry, setEntry]             = useState<LibraryEntry | null>(null);
   const [checkDone, setCheckDone]     = useState(false);
@@ -220,7 +262,27 @@ export default function GameDetailsPage() {
 
   useEffect(() => {
     if (!appid) return;
-    getGameDetails(appid).then((data) => { setGame(data); setLoading(false); });
+    getGameDetails(appid).then((data) => {
+      const gameData = data as Partial<GameDetails> | null;
+      setGame(gameData ? {
+        id: gameData.id ?? Number(appid),
+        slug: gameData.slug ?? String(appid),
+        name: gameData.name ?? "Unknown game",
+        background_image: gameData.background_image ?? "",
+        metacritic: gameData.metacritic ?? null,
+        description_raw: gameData.description_raw,
+        genres: gameData.genres ?? [],
+        platforms: gameData.platforms ?? [],
+        screenshots: gameData.screenshots ?? [],
+        released: gameData.released,
+        developers: gameData.developers ?? [],
+        publishers: gameData.publishers ?? [],
+        is_free: gameData.is_free,
+        price: gameData.price,
+        website: gameData.website,
+      } : null);
+      setLoading(false);
+    });
   }, [appid]);
 
   useEffect(() => {
@@ -228,12 +290,12 @@ export default function GameDetailsPage() {
     fetch(`/api/games/library/check/${appid}`)
       .then((r) => {
         if (!r.ok) return { in_library: false, entry: null };
-        return r.json();
+        return r.json() as Promise<LibraryCheckResponse>;
       })
       .then((d) => {
         if (d?.in_library && d.entry) {
           setEntry(d.entry);
-          setStatus(d.entry.status as StatusValue);
+          setStatus(d.entry.status);
           setIsFavourite(d.entry.is_favourite);
           setRating(d.entry.rating);
         }
@@ -242,7 +304,7 @@ export default function GameDetailsPage() {
       .catch(() => setCheckDone(true));
     fetch(`/api/games/library/friends-ratings/${appid}`)
       .then((r) => r.ok ? r.json() : { ratings: [] })
-      .then((d) => setFriendRatings(d.ratings ?? []))
+      .then((d: FriendRatingsResponse) => setFriendRatings(d.ratings ?? []))
       .catch(() => {});
   }, [appid]);
 
@@ -260,7 +322,7 @@ export default function GameDetailsPage() {
       game_metacritic: game.metacritic,
     };
     const res  = await fetch("/api/games/library", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    const data = await res.json();
+    const data = await res.json() as LibraryEntryResponse;
     if (data.error) { toastError(data.error); }
     else {
       setEntry(data);
@@ -342,7 +404,7 @@ export default function GameDetailsPage() {
 
             {game.genres?.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-8">
-                {game.genres.map((g: any) => (
+                {game.genres.map((g) => (
                   <span
                     key={g.id}
                     className="px-3 py-1 rounded-full text-xs font-medium"
@@ -371,7 +433,7 @@ export default function GameDetailsPage() {
               <div className="mb-8">
                 <h2 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-3" style={{ fontFamily: "var(--font-syne)" }}>Platforms</h2>
                 <div className="flex flex-wrap gap-2">
-                  {game.platforms.map((p: any, i: number) => (
+                  {game.platforms.map((p, i) => (
                     <span key={i} className="px-3 py-1 rounded-lg text-xs text-white/50" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                       {p.platform?.name}
                     </span>

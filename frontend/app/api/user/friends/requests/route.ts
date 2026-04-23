@@ -1,3 +1,4 @@
+﻿import { DJANGO_API_URL } from "@/lib/server-api";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -15,9 +16,10 @@ async function getCookies() {
 
 export async function GET() {
   const { cookie } = await getCookies();
-  const res = await fetch("http://localhost:8000/api/user/friends/requests/", {
+  const res = await fetch(`${DJANGO_API_URL}/user/friends/requests/`, {
     headers: { Cookie: cookie },
   });
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
+

@@ -43,11 +43,11 @@ export default function SettingsPage() {
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
 
-  const [safeMode, setSafeMode] = useState(true);
-  useEffect(() => {
-    const stored = localStorage.getItem("backlog_safe_mode");
-    if (stored !== null) setSafeMode(stored !== "0");
-  }, []);
+  const [safeMode, setSafeMode] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const stored = window.localStorage.getItem("backlog_safe_mode");
+    return stored === null ? true : stored !== "0";
+  });
   const toggleSafe = () => setSafeMode((v) => {
     const next = !v;
     localStorage.setItem("backlog_safe_mode", next ? "1" : "0");

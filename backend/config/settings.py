@@ -1,4 +1,5 @@
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -119,3 +120,6 @@ USE_TZ = True
 
 
 STATIC_URL = 'static/'
+
+GG_DEALS_API_KEY = os.getenv("GG_DEALS_API_KEY", "")
+GG_DEALS_REGION = os.getenv("GG_DEALS_REGION", "us")
