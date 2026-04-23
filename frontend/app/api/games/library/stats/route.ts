@@ -1,3 +1,4 @@
+﻿import { DJANGO_API_URL } from "@/lib/server-api";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -8,9 +9,10 @@ export async function GET() {
   const cookieHeader = [session ? `sessionid=${session.value}` : "", csrf ? `csrftoken=${csrf.value}` : ""]
     .filter(Boolean)
     .join("; ");
-  const res = await fetch("http://localhost:8000/api/games/library/stats/", {
+  const res = await fetch(`${DJANGO_API_URL}/games/library/stats/`, {
     headers: { Cookie: cookieHeader },
   });
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
+

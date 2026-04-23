@@ -175,8 +175,8 @@ def public_library_favourites_view(request, username):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def friends_ratings_view(request, game_id):
-    from users.models import Friendship
-    friend_ids = Friendship.objects.filter(from_user=request.user).values_list("to_user_id", flat=True)
+    from users.friendships import get_friend_ids
+    friend_ids = get_friend_ids(request.user)
     qs = (
         UserGame.objects
         .filter(user_id__in=friend_ids, game_id=game_id)

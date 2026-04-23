@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 
+type GameCover = string | { src?: string } | null | undefined;
+
 interface GameCardProps {
   game: {
     title: string;
-    cover: any;
+    cover: GameCover;
     rating?: number;
   };
 }

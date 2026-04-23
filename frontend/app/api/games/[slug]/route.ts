@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const DJANGO_URL = "http://localhost:8000";
+import { DJANGO_API_URL } from "@/lib/server-api";
 
 export async function GET(req: NextRequest) {
   const segments = req.nextUrl.pathname.split("/").filter(Boolean);
@@ -9,7 +8,7 @@ export async function GET(req: NextRequest) {
   if (!slug) return NextResponse.json({ error: "Missing slug" }, { status: 400 });
 
   try {
-    const res = await fetch(`${DJANGO_URL}/api/games/${slug}/`);
+    const res = await fetch(`${DJANGO_API_URL}/games/${slug}/`);
     if (!res.ok) {
       return NextResponse.json({ error: "Game not found" }, { status: res.status });
     }

@@ -1,3 +1,4 @@
+﻿import { DJANGO_API_URL } from "@/lib/server-api";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -16,7 +17,7 @@ export async function GET(req: Request, context: { params: Promise<{ gameId: str
   const { gameId } = await context.params;
   try {
     const { cookie } = await getCookies();
-    const res = await fetch(`http://localhost:8000/api/games/library/check/${gameId}/`, {
+    const res = await fetch(`${DJANGO_API_URL}/games/library/check/${gameId}/`, {
       headers: { Cookie: cookie },
       cache: "no-store",
     });
@@ -27,3 +28,4 @@ export async function GET(req: Request, context: { params: Promise<{ gameId: str
     return NextResponse.json({ in_library: false, entry: null });
   }
 }
+

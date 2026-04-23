@@ -4,7 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useEffect } from "react";
 
-export default function GameTile({ game }: { game: any }) {
+interface GameTileItem {
+  id: number;
+  name: string;
+  background_image?: string | null;
+  metacritic?: number | null;
+}
+
+export default function GameTile({ game }: { game: GameTileItem }) {
   const ref = useRef<HTMLDivElement>(null);
   const ringsRef = useRef<HTMLDivElement>(null);
   const shimmerRef = useRef<HTMLDivElement>(null);
@@ -57,7 +64,7 @@ export default function GameTile({ game }: { game: any }) {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const handleEnter = (e: React.MouseEvent) => {
+  const handleEnter = () => {
     if (!ref.current) return;
     rectRef.current = ref.current.getBoundingClientRect();
     targetGlow.current = 1;

@@ -12,18 +12,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  auth,
-  dashboard,
 }: {
   children: React.ReactNode;
-  auth: React.ReactNode;
-  dashboard: React.ReactNode;
 }) {
   return (
     <html lang="en" className={syne.variable}>
       <body>
-        {auth}
-        {dashboard}
         {children}
 
         <Toaster

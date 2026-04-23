@@ -45,6 +45,14 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "gg.deals",
+      },
+      {
+        protocol: "https",
+        hostname: "*.gg.deals",
+      },
+      {
+        protocol: "https",
         hostname: "images.igdb.com",
       },
       {

@@ -1,3 +1,4 @@
+﻿import { DJANGO_API_URL } from "@/lib/server-api";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     .filter(Boolean)
     .join("; ");
 
-  const res = await fetch("http://localhost:8000/api/user/change-password/", {
+  const res = await fetch(`${DJANGO_API_URL}/user/change-password/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -28,3 +29,4 @@ export async function POST(req: Request) {
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
+
