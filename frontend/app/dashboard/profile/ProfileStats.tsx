@@ -20,7 +20,7 @@ export default function ProfileStats() {
       style={{ background: "rgb(14,15,24)", border: "1px solid rgba(255,255,255,0.07)" }}
     >
       <div
-        className="flex items-center gap-2.5 px-5 py-4 border-b"
+        className="flex items-center gap-2.5 px-4 py-3 border-b"
         style={{ borderColor: "rgba(255,255,255,0.06)" }}
       >
         <div
@@ -37,17 +37,17 @@ export default function ProfileStats() {
         </span>
       </div>
 
-      <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+      <div className="px-4 pt-3 pb-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         <p className="text-[10px] text-white/28 uppercase tracking-[0.14em] font-semibold mb-1">Total games</p>
         <p
-          className="text-5xl font-black text-white leading-none"
+          className="text-4xl font-black text-white leading-none"
           style={{ fontFamily: "var(--font-syne)" }}
         >
           {total}
         </p>
 
         {total > 0 && (
-          <div className="mt-4 flex h-2 rounded-full overflow-hidden gap-0.5">
+          <div className="mt-3 flex h-1.5 rounded-full overflow-hidden gap-0.5">
             {STATUS_CONFIG.map((s) => {
               const val = stats?.[s.key] ?? 0;
               if (!val) return null;
@@ -64,14 +64,14 @@ export default function ProfileStats() {
         )}
       </div>
 
-      <div className="p-3 flex flex-col gap-1.5">
+      <div className="p-2.5 flex flex-col gap-1">
         {STATUS_CONFIG.map((s) => {
           const val = stats?.[s.key] ?? 0;
           const pct = total > 0 ? Math.round((val / total) * 100) : 0;
           return (
             <div
               key={s.key}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl"
               style={{ background: s.bg, border: `1px solid ${s.border}` }}
             >
               <div

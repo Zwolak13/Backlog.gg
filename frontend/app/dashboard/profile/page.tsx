@@ -14,16 +14,16 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<Tab>("Games");
 
   return (
-    <div className="w-full min-h-screen text-white" style={{ background: "rgb(10,11,17)" }}>
+    <div className="w-full min-h-screen lg:h-screen lg:overflow-hidden flex flex-col text-white" style={{ background: "rgb(10,11,17)" }}>
       <ProfileHeader activeTab={activeTab} onTabChange={(t) => setActiveTab(t as Tab)} />
 
-      <div className="flex flex-col lg:flex-row gap-6 px-8 md:px-12 py-8 w-full">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-col lg:flex-row gap-4 px-8 md:px-12 py-4 w-full lg:flex-1 lg:min-h-0 lg:overflow-hidden">
+        <div className="flex-1 min-w-0 lg:min-h-0 lg:overflow-hidden">
           {activeTab === "Games"    && <ProfileGameList />}
           {activeTab === "Library"  && <ProfileLibrary />}
           {activeTab === "Activity" && (
             <div
-              className="flex flex-col items-center justify-center py-28 gap-4 rounded-2xl"
+              className="flex h-full min-h-[320px] flex-col items-center justify-center gap-4 rounded-2xl"
               style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.07)" }}
             >
               <div
@@ -42,7 +42,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="w-full lg:w-64 shrink-0 flex flex-col gap-4">
+        <div className="w-full lg:w-60 shrink-0 flex flex-col gap-3 lg:h-full lg:min-h-0">
           <ProfileStats />
           <FriendsPanel />
         </div>

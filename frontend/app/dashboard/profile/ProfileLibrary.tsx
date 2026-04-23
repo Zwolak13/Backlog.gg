@@ -26,13 +26,13 @@ export default function ProfileLibrary() {
   };
 
   return (
-    <div>
-      <div className="flex gap-2 mb-6 flex-wrap">
+    <div className="h-full min-h-0 overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(135,86,241,0.25) transparent" }}>
+      <div className="flex gap-2 mb-4 flex-wrap">
         {STATUSES.map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className="px-4 py-2 rounded-xl text-xs font-semibold transition-all capitalize"
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all capitalize"
             style={filter === s
               ? { background: "linear-gradient(135deg, var(--backlog-purple), var(--backlog-indigo))", color: "white", boxShadow: "0 2px 12px rgba(135,86,241,0.35)" }
               : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }
@@ -47,7 +47,7 @@ export default function ProfileLibrary() {
         <p className="text-white/30 text-sm">Loading…</p>
       ) : games.length === 0 ? (
         <div
-          className="flex flex-col items-center justify-center py-24 gap-3 text-center rounded-2xl"
+          className="flex flex-col items-center justify-center py-16 gap-3 text-center rounded-2xl"
           style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.07)" }}
         >
           <p className="text-white/35 font-medium">No games here yet</p>

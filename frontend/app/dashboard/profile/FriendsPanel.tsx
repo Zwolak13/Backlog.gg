@@ -30,11 +30,11 @@ export default function FriendsPanel() {
   return (
     <>
       <div
-        className="rounded-2xl overflow-hidden"
+        className="rounded-2xl overflow-hidden flex flex-col min-h-0 lg:flex-1"
         style={{ background: "rgb(14,15,24)", border: "1px solid rgba(255,255,255,0.07)" }}
       >
         <div
-          className="flex items-center justify-between px-5 py-4 border-b"
+          className="flex items-center justify-between px-4 py-3 border-b shrink-0"
           style={{ borderColor: "rgba(255,255,255,0.06)" }}
         >
           <div className="flex items-center gap-2.5">
@@ -66,9 +66,9 @@ export default function FriendsPanel() {
           </button>
         </div>
 
-        <div className="p-3">
+        <div className="p-2.5 min-h-0 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(135,86,241,0.25) transparent" }}>
           {friends.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2.5 text-center">
+            <div className="flex flex-col items-center justify-center py-7 gap-2.5 text-center">
               <div
                 className="w-12 h-12 rounded-2xl flex items-center justify-center mb-1"
                 style={{ background: "rgba(135,86,241,0.07)", border: "1px solid rgba(135,86,241,0.12)" }}
@@ -84,7 +84,7 @@ export default function FriendsPanel() {
                 <Link
                   key={f.username}
                   href={`/dashboard/profile/${f.username}`}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl transition-all"
                   style={{ color: "inherit" }}
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(135,86,241,0.07)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}

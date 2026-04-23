@@ -24,29 +24,29 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
     <div className="w-full">
       <div
         className="relative w-full overflow-hidden"
-        style={{ height: 280, background: "linear-gradient(155deg, #0e0b22 0%, #09091a 45%, #080912 100%)" }}
+        style={{ height: 140, background: "linear-gradient(155deg, #0e0b22 0%, #09091a 45%, #080912 100%)" }}
       >
         <div
           className="absolute"
           style={{
-            top: -80, left: -60,
-            width: 600, height: 500,
+            top: -140, left: -70,
+            width: 520, height: 360,
             background: "radial-gradient(ellipse, rgba(100,55,255,0.4) 0%, transparent 60%)",
           }}
         />
         <div
           className="absolute"
           style={{
-            top: 0, left: "40%", transform: "translateX(-50%)",
-            width: 800, height: 400,
+            top: -80, left: "42%", transform: "translateX(-50%)",
+            width: 720, height: 280,
             background: "radial-gradient(ellipse, rgba(135,86,241,0.25) 0%, transparent 58%)",
           }}
         />
         <div
           className="absolute"
           style={{
-            top: -50, right: -80,
-            width: 500, height: 420,
+            top: -130, right: -90,
+            width: 440, height: 320,
             background: "radial-gradient(ellipse, rgba(255,38,132,0.14) 0%, transparent 58%)",
           }}
         />
@@ -73,7 +73,7 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
 
         <Link
           href="/dashboard/settings"
-          className="absolute top-5 right-5 flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 hover:brightness-125"
+          className="absolute top-4 right-5 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 hover:brightness-125"
           style={{
             background: "rgba(135,86,241,0.14)",
             border: "1px solid rgba(135,86,241,0.4)",
@@ -89,25 +89,25 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
       <div style={{ background: "#0b0c18", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div className="px-8 md:px-12">
 
-          <div className="flex items-end gap-6 -mt-14 pb-6">
-            <div className="relative shrink-0 z-10">
+          <div className="flex items-start gap-5 pb-3">
+            <div className="relative shrink-0 z-10 -mt-10">
               <div
                 className="rounded-xl"
                 style={{
                   padding: 3,
                   background: "linear-gradient(135deg, #9b6ff5, #5536da, #c084fc)",
-                  boxShadow: "0 0 0 4px #0b0c18, 0 16px 48px rgba(135,86,241,0.55), 0 4px 20px rgba(0,0,0,0.9)",
+                  boxShadow: "0 0 0 4px #0b0c18, 0 12px 34px rgba(135,86,241,0.45), 0 4px 18px rgba(0,0,0,0.85)",
                 }}
               >
                 <img
                   src={profile?.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${profile?.username}`}
                   alt="avatar"
                   className="block rounded-[9px] object-cover"
-                  style={{ width: 116, height: 116, background: "rgb(20,22,34)" }}
+                  style={{ width: 86, height: 86, background: "rgb(20,22,34)" }}
                 />
               </div>
               <div
-                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap"
+                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap"
                 style={{
                   background: "#0a1a14",
                   border: "1px solid rgba(52,211,153,0.5)",
@@ -120,10 +120,10 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
               </div>
             </div>
 
-            <div className="pb-1 flex-1 min-w-0">
-              <div className="flex items-center gap-3 flex-wrap mb-2">
+            <div className="pt-3 pb-0.5 flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-wrap mb-1.5">
                 <h1
-                  className="text-[2rem] font-black text-white leading-none"
+                  className="text-[1.65rem] font-black text-white leading-none"
                   style={{ fontFamily: "var(--font-syne)", letterSpacing: "-0.025em" }}
                 >
                   {profile?.username ?? "Loading…"}
@@ -146,7 +146,7 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
                 className="text-sm leading-relaxed max-w-xl"
                 style={{ color: "rgba(255,255,255,0.42)" }}
               >
-                {profile?.bio || "No bio set yet."}
+                <span className="line-clamp-1">{profile?.bio || "No bio set yet."}</span>
               </p>
             </div>
           </div>
@@ -164,16 +164,16 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
             ].map((s, i) => (
               <div
                 key={s.label}
-                className="flex flex-col items-center py-4 flex-1 select-none"
+                className="flex flex-col items-center py-2.5 flex-1 select-none"
                 style={{ borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none" }}
               >
                 <span
-                  className="text-[1.6rem] font-black leading-none mb-1"
+                  className="text-[1.25rem] font-black leading-none mb-0.5"
                   style={{ fontFamily: "var(--font-syne)", color: s.color }}
                 >
                   {s.value}
                 </span>
-                <span className="text-[11px] font-medium tracking-wide" style={{ color: "rgba(255,255,255,0.28)" }}>
+                <span className="text-[10px] font-medium tracking-wide" style={{ color: "rgba(255,255,255,0.28)" }}>
                   {s.label}
                 </span>
               </div>
@@ -196,7 +196,7 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
             <button
               key={tab}
               onClick={() => onTabChange(tab)}
-              className="relative px-5 py-4 text-sm font-semibold transition-all duration-200"
+              className="relative px-5 py-3 text-sm font-semibold transition-all duration-200"
               style={{ color: activeTab === tab ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.3)" }}
             >
               {tab}
