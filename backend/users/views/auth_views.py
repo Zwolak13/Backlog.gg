@@ -15,6 +15,7 @@ def login_view(request):
         login(request, user)
         return Response({
             "user": {
+                "id": user.id,
                 "username": user.username,
                 "email": user.email,
                 "avatar_url": user.avatar_url,
@@ -37,6 +38,7 @@ def register_view(request):
         user = serializer.save()
         return Response({
             "user": {
+                "id": user.id,
                 "username": user.username,
                 "email": user.email,
                 "avatar_url": user.avatar_url,
@@ -57,6 +59,7 @@ def me_view(request):
     user = request.user
     return Response({
         "user": {
+            "id": user.id,
             "username": user.username,
             "email": user.email,
             "avatar_url": user.avatar_url,

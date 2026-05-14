@@ -72,6 +72,7 @@ def public_friends_list_view(request, username):
 def public_profile_view(request, username):
     user = get_object_or_404(User, username=username)
     return Response({
+        "id": user.id,
         "username": user.username,
         "avatar_url": user.avatar_url,
         "bio": user.bio,

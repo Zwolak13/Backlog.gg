@@ -35,6 +35,7 @@ def change_password(request):
 def get_profile(request):
     user = request.user
     return Response({
+        "id": user.id,
         "username": user.username,
         "email": user.email,
         "bio": user.bio,
