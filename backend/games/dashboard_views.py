@@ -7,6 +7,7 @@ from users.friendships import get_friend_ids
 from .bundles import DEFAULT_BUNDLE_LIMIT, get_dashboard_bundles
 from .deals import DEFAULT_LIMIT, get_dashboard_deals
 from .models import UserGame
+from .steam import normalize_currency
 
 
 def _safe_limit(raw_value, default=20, maximum=50):
@@ -21,14 +22,16 @@ def _safe_limit(raw_value, default=20, maximum=50):
 @permission_classes([IsAuthenticated])
 def deals_view(request):
     limit = _safe_limit(request.GET.get("limit"), default=DEFAULT_LIMIT, maximum=24)
-    return Response({"deals": get_dashboard_deals(limit)})
+    currency = normalize_currency(request.GET.get("currency"))
+    return Response({"deals": get_dashboard_deals(limit, currency=currency)})
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def bundles_view(request):
     limit = _safe_limit(request.GET.get("limit"), default=DEFAULT_BUNDLE_LIMIT, maximum=18)
-    return Response({"bundles": get_dashboard_bundles(limit)})
+    currency = normalize_currency(request.GET.get("currency"))
+    return Response({"bundles": get_dashboard_bundles(limit, currency=currency)})
 
 
 def _base_activity(ug):

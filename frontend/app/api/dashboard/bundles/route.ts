@@ -10,9 +10,10 @@ type BundlesPayload = {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const limit = searchParams.get("limit") ?? "8";
+  const currency = searchParams.get("currency") ?? "USD";
 
   try {
-    const res = await fetch(backendApiUrl(`/games/bundles/?limit=${encodeURIComponent(limit)}`), {
+    const res = await fetch(backendApiUrl(`/games/bundles/?${new URLSearchParams({ limit, currency })}`), {
       headers: await forwardedAuthHeaders(),
       cache: "no-store",
     });

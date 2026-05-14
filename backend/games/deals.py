@@ -8,6 +8,11 @@ from . import steam
 
 GG_PRICES_URL = "https://api.gg.deals/v1/prices/by-steam-app-id/"
 DEFAULT_LIMIT = 8
+GG_REGIONS = {
+    "USD": "us",
+    "EUR": "de",
+    "PLN": "pl",
+}
 
 
 def _format_price(cents: int | None, currency: str = "USD") -> str | None:
@@ -36,8 +41,12 @@ def _parse_price(value: Any) -> float | None:
         return None
 
 
-def _steam_deals(limit: int) -> list[dict]:
-    sections = steam.get_featured_sections(safe=True)
+def _region_for_currency(currency: str) -> str:
+    return GG_REGIONS.get(steam.normalize_currency(currency), "us")
+
+
+def _steam_deals(limit: int, currency: str) -> list[dict]:
+    sections = steam.get_featured_sections(safe=True, currency=currency)
     specials = next((section for section in sections if section["id"] == "specials"), None)
     if not specials:
         return []
@@ -96,7 +105,7 @@ def _best_gg_price(entry: dict) -> tuple[str | None, str | None]:
     return None, None
 
 
-def _enrich_with_gg_deals(deals: list[dict]) -> list[dict]:
+def _enrich_with_gg_deals(deals: list[dict], currency: str) -> list[dict]:
     api_key = getattr(settings, "GG_DEALS_API_KEY", "")
     if not api_key or not deals:
         return deals
@@ -108,7 +117,7 @@ def _enrich_with_gg_deals(deals: list[dict]) -> list[dict]:
             params={
                 "ids": ",".join(ids),
                 "key": api_key,
-                "region": getattr(settings, "GG_DEALS_REGION", "us"),
+                "region": _region_for_currency(currency),
             },
             headers={"User-Agent": "Backlog.gg/1.0"},
             timeout=10,
@@ -140,5 +149,6 @@ def _enrich_with_gg_deals(deals: list[dict]) -> list[dict]:
     return enriched
 
 
-def get_dashboard_deals(limit: int = DEFAULT_LIMIT) -> list[dict]:
-    return _enrich_with_gg_deals(_steam_deals(limit))
+def get_dashboard_deals(limit: int = DEFAULT_LIMIT, currency: str = "USD") -> list[dict]:
+    normalized_currency = steam.normalize_currency(currency)
+    return _enrich_with_gg_deals(_steam_deals(limit, normalized_currency), normalized_currency)

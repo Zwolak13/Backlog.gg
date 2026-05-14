@@ -10,10 +10,15 @@ from . import steam
 GG_BUNDLES_URL = "https://api.gg.deals/v1/bundles/by-steam-app-id/"
 GG_BUNDLES_FALLBACK_URL = "https://api.gg.deals/v1/bundles/"
 DEFAULT_BUNDLE_LIMIT = 8
+GG_REGIONS = {
+    "USD": "us",
+    "EUR": "de",
+    "PLN": "pl",
+}
 
 
-def _featured_app_ids(limit: int) -> list[int]:
-    sections = steam.get_featured_sections(safe=True)
+def _featured_app_ids(limit: int, currency: str) -> list[int]:
+    sections = steam.get_featured_sections(safe=True, currency=currency)
     by_id = {section["id"]: section for section in sections}
     ordered_sections = [
         by_id[key]
@@ -99,7 +104,7 @@ def _format_money(value: Any, currency: str = "USD", *, cents: bool = False) -> 
     if number == 0:
         return "Free"
 
-    symbols = {"USD": "$"}
+    symbols = {"USD": "$", "EUR": "EUR ", "PLN": "PLN "}
     prefix = symbols.get(currency.upper(), f"{currency.upper()} ")
     return f"{prefix}{number:.2f}"
 
@@ -263,13 +268,17 @@ def _collect_bundle_entries(value: Any, entries: list[dict]) -> None:
             _collect_bundle_entries(item, entries)
 
 
-def _request_bundle_payload(app_ids: list[int]) -> Any | None:
+def _region_for_currency(currency: str) -> str:
+    return GG_REGIONS.get(steam.normalize_currency(currency), "us")
+
+
+def _request_bundle_payload(app_ids: list[int], currency: str) -> Any | None:
     api_key = getattr(settings, "GG_DEALS_API_KEY", "")
     if not api_key or not app_ids:
         return None
 
     ids = ",".join(str(app_id) for app_id in app_ids)
-    region = getattr(settings, "GG_DEALS_REGION", "us")
+    region = _region_for_currency(currency)
     attempts = (
         (GG_BUNDLES_URL, {"ids": ids, "key": api_key, "region": region}),
         (GG_BUNDLES_FALLBACK_URL, {"ids": ids, "key": api_key, "region": region}),
@@ -294,9 +303,10 @@ def _request_bundle_payload(app_ids: list[int]) -> Any | None:
     return None
 
 
-def get_dashboard_bundles(limit: int = DEFAULT_BUNDLE_LIMIT) -> list[dict]:
+def get_dashboard_bundles(limit: int = DEFAULT_BUNDLE_LIMIT, currency: str = "USD") -> list[dict]:
+    normalized_currency = steam.normalize_currency(currency)
     lookup_limit = max(limit * 4, 24)
-    payload = _request_bundle_payload(_featured_app_ids(lookup_limit))
+    payload = _request_bundle_payload(_featured_app_ids(lookup_limit, normalized_currency), normalized_currency)
     if payload is None:
         return []
 

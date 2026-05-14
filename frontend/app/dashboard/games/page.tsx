@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { getPreferredCurrency } from "@/lib/preferences";
 
 interface Game {
   id: number;
@@ -25,12 +26,12 @@ const ICONS: Record<string, React.ReactNode> = {
   coming_soon:  <Clock      size={13} />,
 };
 
-async function fetchBrowse(safe: boolean) {
-  const r = await fetch(`/api/games?safe=${safe ? "1" : "0"}`); if (!r.ok) return null;
+async function fetchBrowse(safe: boolean, currency: string) {
+  const r = await fetch(`/api/games?${new URLSearchParams({ safe: safe ? "1" : "0", currency })}`); if (!r.ok) return null;
   return r.json() as Promise<{ mode: "browse"; sections: Section[] }>;
 }
-async function fetchSearch(q: string, page: number, safe: boolean) {
-  const r = await fetch(`/api/games?${new URLSearchParams({ q, page: String(page), safe: safe ? "1" : "0" })}`);
+async function fetchSearch(q: string, page: number, safe: boolean, currency: string) {
+  const r = await fetch(`/api/games?${new URLSearchParams({ q, page: String(page), safe: safe ? "1" : "0", currency })}`);
   if (!r.ok) return null;
   return r.json() as Promise<{ mode: "search"; results: Game[]; has_more: boolean }>;
 }
@@ -295,6 +296,7 @@ export default function GamesPage() {
     const stored = window.localStorage.getItem("backlog_safe_mode");
     return stored === null ? true : stored !== "0";
   });
+  const [currency]                          = useState(() => getPreferredCurrency());
   const inputRef                            = useRef<HTMLInputElement>(null);
   const sentinelRef                         = useRef<HTMLDivElement>(null);
   const queryRef                            = useRef(query);
@@ -309,18 +311,18 @@ export default function GamesPage() {
   }, [safeMode]);
 
   useEffect(() => {
-    fetchBrowse(safeMode).then((d) => { if (d?.mode === "browse") setSections(d.sections); setBrowseLoading(false); });
-  }, [safeMode]);
+    fetchBrowse(safeMode, currency).then((d) => { if (d?.mode === "browse") setSections(d.sections); setBrowseLoading(false); });
+  }, [safeMode, currency]);
 
   const loadSearch = useCallback(async (q: string, p: number, replace: boolean) => {
     setSearchLoading(true);
-    const d = await fetchSearch(q, p, safeModeRef.current);
+    const d = await fetchSearch(q, p, safeModeRef.current, currency);
     if (d?.mode === "search") {
       setSearchResults((prev) => replace ? d.results : [...prev, ...d.results]);
       setHasMore(d.has_more);
     }
     setSearchLoading(false);
-  }, []);
+  }, [currency]);
 
   useEffect(() => {
     if (!query) return;

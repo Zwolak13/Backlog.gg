@@ -6,8 +6,9 @@ export async function GET(req: Request) {
   const q = searchParams.get("q") || "";
   const page = searchParams.get("page") || "1";
   const safe = searchParams.get("safe") || "1";
+  const currency = searchParams.get("currency") || "USD";
 
-  const params = new URLSearchParams({ page, safe });
+  const params = new URLSearchParams({ page, safe, currency });
   if (q) params.set("q", q);
 
   try {
