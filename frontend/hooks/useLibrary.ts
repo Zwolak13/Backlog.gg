@@ -28,15 +28,30 @@ export interface LibraryStats {
   total: number;
 }
 
+async function readJson<T>(response: Response, fallback: T): Promise<T> {
+  const text = await response.text();
+  if (!text) return fallback;
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 export function useRecentGames() {
   const [games, setGames] = useState<LibraryGame[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/games/library/recent")
-      .then((r) => r.json())
+      .then((r) => readJson<{ games?: LibraryGame[] }>(r, { games: [] }))
       .then((d) => {
         setGames(d.games ?? []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setGames([]);
         setLoading(false);
       });
   }, []);
@@ -50,9 +65,13 @@ export function useFavouriteGames() {
 
   useEffect(() => {
     fetch("/api/games/library/favourites")
-      .then((r) => r.json())
+      .then((r) => readJson<{ games?: LibraryGame[] }>(r, { games: [] }))
       .then((d) => {
         setGames(d.games ?? []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setGames([]);
         setLoading(false);
       });
   }, []);
@@ -67,9 +86,13 @@ export function useLibrary(status?: string) {
   useEffect(() => {
     const url = status ? `/api/games/library?status=${status}` : "/api/games/library";
     fetch(url)
-      .then((r) => r.json())
+      .then((r) => readJson<{ games?: LibraryGame[] }>(r, { games: [] }))
       .then((d) => {
         setGames(d.games ?? []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setGames([]);
         setLoading(false);
       });
   }, [status]);
@@ -83,9 +106,13 @@ export function useLibraryStats() {
 
   useEffect(() => {
     fetch("/api/games/library/stats")
-      .then((r) => r.json())
+      .then((r) => readJson<LibraryStats | null>(r, null))
       .then((d) => {
         setStats(d);
+        setLoading(false);
+      })
+      .catch(() => {
+        setStats(null);
         setLoading(false);
       });
   }, []);
