@@ -52,6 +52,12 @@ SEARCH_URL = "https://store.steampowered.com/api/storesearch/"
 DETAILS_URL = "https://store.steampowered.com/api/appdetails"
 FEATURED_URL = "https://store.steampowered.com/api/featuredcategories/"
 CDN = "https://cdn.akamai.steamstatic.com/steam/apps"
+SUPPORTED_CURRENCIES = {"USD", "EUR", "PLN"}
+CURRENCY_COUNTRIES = {
+    "USD": "US",
+    "EUR": "DE",
+    "PLN": "PL",
+}
 
 SECTIONS_META = [
     ("top_sellers",  "Top Sellers",  "🔥"),
@@ -74,11 +80,21 @@ def make_slug(name: str, appid: int) -> str:
     return base or str(appid)
 
 
-def get_featured_sections(safe: bool = True) -> list[dict]:
+def normalize_currency(currency: str | None) -> str:
+    value = (currency or "USD").upper()
+    return value if value in SUPPORTED_CURRENCIES else "USD"
+
+
+def country_for_currency(currency: str | None) -> str:
+    return CURRENCY_COUNTRIES[normalize_currency(currency)]
+
+
+def get_featured_sections(safe: bool = True, currency: str = "USD") -> list[dict]:
+    country = country_for_currency(currency)
     try:
         res = requests.get(
             FEATURED_URL,
-            params={"l": "english", "cc": "US"},
+            params={"l": "english", "cc": country},
             headers={"User-Agent": "Mozilla/5.0"},
             timeout=10,
         )
@@ -126,12 +142,13 @@ def get_featured_sections(safe: bool = True) -> list[dict]:
     return sections
 
 
-def search_games(query: str, start: int = 0, limit: int = 40, safe: bool = True) -> tuple[list[dict], bool]:
+def search_games(query: str, start: int = 0, limit: int = 40, safe: bool = True, currency: str = "USD") -> tuple[list[dict], bool]:
+    country = country_for_currency(currency)
     try:
         fetch_count = limit * 3
         res = requests.get(
             SEARCH_URL,
-            params={"term": query, "l": "english", "cc": "US", "start": start, "count": fetch_count},
+            params={"term": query, "l": "english", "cc": country, "start": start, "count": fetch_count},
             headers={"User-Agent": "Mozilla/5.0"},
             timeout=10,
         )
@@ -166,11 +183,12 @@ def search_games(query: str, start: int = 0, limit: int = 40, safe: bool = True)
     return results, has_more
 
 
-def get_game_details(appid: int) -> dict | None:
+def get_game_details(appid: int, currency: str = "USD") -> dict | None:
+    country = country_for_currency(currency)
     try:
         res = requests.get(
             DETAILS_URL,
-            params={"appids": appid, "l": "english", "cc": "US"},
+            params={"appids": appid, "l": "english", "cc": country},
             headers={"User-Agent": "Mozilla/5.0"},
             timeout=10,
         )

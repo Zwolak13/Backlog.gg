@@ -1,4 +1,5 @@
 import { ENDPOINTS } from "./config";
+import { getPreferredCurrency } from "./preferences";
 
 export interface RegisterData {
   username: string;
@@ -61,7 +62,8 @@ export async function searchGames(query: string) {
 
 export async function getGameDetails(slug: string) {
   if (!slug) return null;
-  const res = await fetch(`/api/games/${slug}`);
+  const params = new URLSearchParams({ currency: getPreferredCurrency() });
+  const res = await fetch(`/api/games/${slug}?${params}`);
   if (!res.ok) return null;
   return res.json();
 }

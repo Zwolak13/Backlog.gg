@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink, Flame, Gamepad2, Heart, Library, Percent, Sparkles, Star, Users } from "lucide-react";
 import { getMe, ApiResponse, User } from "@/lib/api";
+import { getPreferredCurrency } from "@/lib/preferences";
 
 type LoadState<T> = {
   data: T;
@@ -649,6 +650,7 @@ export default function DashboardPage() {
   const [deals, setDeals] = useState<LoadState<Deal[]>>(initialDeals);
   const [bundles, setBundles] = useState<LoadState<BundleDeal[]>>(initialBundles);
   const [activity, setActivity] = useState<LoadState<ActivityItem[]>>(initialActivity);
+  const [currency] = useState(() => getPreferredCurrency());
   const gameContentLoading = deals.loading || bundles.loading;
 
   useEffect(() => {
@@ -666,7 +668,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch("/api/dashboard/deals?limit=8", { signal: controller.signal })
+    fetch(`/api/dashboard/deals?${new URLSearchParams({ limit: "8", currency })}`, { signal: controller.signal })
       .then(async (response) => {
         const payload = await response.json() as { deals?: Deal[]; error?: string };
         if (!response.ok) throw new Error(payload.error ?? "Unable to load deals");
@@ -679,12 +681,12 @@ export default function DashboardPage() {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [currency]);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch("/api/dashboard/bundles?limit=8", { signal: controller.signal })
+    fetch(`/api/dashboard/bundles?${new URLSearchParams({ limit: "8", currency })}`, { signal: controller.signal })
       .then(async (response) => {
         const payload = await response.json() as { bundles?: BundleDeal[]; error?: string };
         if (!response.ok) throw new Error(payload.error ?? "Unable to load bundles");
@@ -697,7 +699,7 @@ export default function DashboardPage() {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [currency]);
 
   useEffect(() => {
     const controller = new AbortController();

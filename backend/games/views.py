@@ -13,18 +13,20 @@ def list_games_view(request):
     start = (page - 1) * PAGE_SIZE
 
     safe = request.GET.get("safe", "1") != "0"
+    currency = steam.normalize_currency(request.GET.get("currency"))
 
     if q:
-        games, has_more = steam.search_games(q, start=start, limit=PAGE_SIZE, safe=safe)
+        games, has_more = steam.search_games(q, start=start, limit=PAGE_SIZE, safe=safe, currency=currency)
         return JsonResponse({"mode": "search", "results": games, "has_more": has_more, "page": page})
     else:
-        sections = steam.get_featured_sections(safe=safe)
+        sections = steam.get_featured_sections(safe=safe, currency=currency)
         return JsonResponse({"mode": "browse", "sections": sections})
 
 
 @require_GET
 def game_details_view(request, appid):
-    data = steam.get_game_details(appid)
+    currency = steam.normalize_currency(request.GET.get("currency"))
+    data = steam.get_game_details(appid, currency=currency)
 
     if data is None:
         game = Game.objects.filter(pk=appid).first()

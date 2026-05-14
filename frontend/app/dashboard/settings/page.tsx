@@ -5,6 +5,7 @@ import { User, Lock, ShieldAlert, ChevronRight, SlidersHorizontal, ShieldCheck, 
 import { Button } from "@/components/ui/button";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { useRouter } from "next/navigation";
+import { CURRENCIES, Currency, getPreferredCurrency, setPreferredCurrency } from "@/lib/preferences";
 
 type Section = "profile" | "account" | "preferences" | "danger";
 
@@ -48,11 +49,17 @@ export default function SettingsPage() {
     const stored = window.localStorage.getItem("backlog_safe_mode");
     return stored === null ? true : stored !== "0";
   });
+  const [currency, setCurrency] = useState<Currency>(() => getPreferredCurrency());
   const toggleSafe = () => setSafeMode((v) => {
     const next = !v;
     localStorage.setItem("backlog_safe_mode", next ? "1" : "0");
     return next;
   });
+  const chooseCurrency = (next: Currency) => {
+    setPreferredCurrency(next);
+    setCurrency(next);
+    toastSuccess(`Currency set to ${next}`);
+  };
 
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
@@ -269,7 +276,7 @@ export default function SettingsPage() {
               <SectionHeader title="Preferences" subtitle="Customize your browsing experience" icon={<SlidersHorizontal size={15} />} />
 
               <div
-                className="p-5 rounded-xl"
+                className="p-5 rounded-xl mb-5"
                 style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}
               >
                 <div className="flex items-center justify-between gap-6">
@@ -290,6 +297,35 @@ export default function SettingsPage() {
                     {safeMode ? <ShieldCheck size={15} /> : <ShieldOff size={15} />}
                     {safeMode ? "On" : "Off"}
                   </button>
+                </div>
+              </div>
+
+              <div
+                className="p-5 rounded-xl"
+                style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}
+              >
+                <div className="flex items-center justify-between gap-6">
+                  <div>
+                    <p className="text-sm font-semibold text-white/85 mb-1">Currency</p>
+                    <p className="text-xs text-white/35 leading-relaxed">
+                      Show Steam and deal prices in your preferred currency.
+                    </p>
+                  </div>
+                  <div className="flex rounded-lg p-1 shrink-0" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    {CURRENCIES.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => chooseCurrency(option)}
+                        className="px-3 py-1.5 rounded-md text-xs font-bold transition-all"
+                        style={currency === option
+                          ? { background: "linear-gradient(135deg, var(--backlog-purple), var(--backlog-indigo))", color: "white", boxShadow: "0 2px 10px rgba(135,86,241,0.28)" }
+                          : { color: "rgba(255,255,255,0.42)" }
+                        }
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
