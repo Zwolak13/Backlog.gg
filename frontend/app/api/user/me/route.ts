@@ -1,28 +1,24 @@
-﻿import { DJANGO_API_URL } from "@/lib/server-api";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { backendApiUrl, forwardedAuthHeaders, readBackendJson } from "@/lib/server-api";
 
 export async function GET() {
-  const cookieStore = await cookies();
+  try {
+    const res = await fetch(backendApiUrl("/user/me/"), {
+      method: "GET",
+      headers: await forwardedAuthHeaders(),
+    });
+    const { data, error } = await readBackendJson<Record<string, unknown>>(res, {});
 
-  const session = cookieStore.get("sessionid");
-  const csrf = cookieStore.get("csrftoken");
+    if (!res.ok || error) {
+      return NextResponse.json(
+        { error: error ?? data.error ?? data.detail ?? "Unable to load profile" },
+        { status: res.status || 502 },
+      );
+    }
 
-  const cookieHeader = [
-    session ? `sessionid=${session.value}` : "",
-    csrf ? `csrftoken=${csrf.value}` : "",
-  ]
-    .filter(Boolean)
-    .join("; ");
-
-  const res = await fetch(`${DJANGO_API_URL}/user/me/`, {
-    method: "GET",
-    headers: {
-      Cookie: cookieHeader,
-    },
-  });
-
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
+    return NextResponse.json(data, { status: res.status });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Backend unreachable";
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
 }
-
