@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from users.friendships import get_friend_ids
 
 from .bundles import DEFAULT_BUNDLE_LIMIT, get_dashboard_bundles
-from .deals import DEFAULT_LIMIT, get_dashboard_deals
+from .deals import DEFAULT_LIMIT, get_dashboard_deals, get_game_deal
 from .models import UserGame
 from .steam import normalize_currency
 
@@ -77,7 +77,62 @@ def _activity_events(ug):
             "extra": {"status": ug.status},
         })
 
+    if ug.review_text:
+        events.append({
+            **base,
+            "id": f"review-{ug.id}",
+            "type": "wrote_review",
+            "timestamp": ug.updated_at,
+            "extra": {"rating": ug.rating, "review_text": ug.review_text},
+        })
+
     return events
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def own_activity_view(request):
+    limit = _safe_limit(request.GET.get("limit"), default=30, maximum=100)
+    rows = (
+        UserGame.objects
+        .filter(user=request.user)
+        .select_related("user", "game")
+        .order_by("-updated_at")[:limit * 4]
+    )
+    events = []
+    for ug in rows:
+        events.extend(_activity_events(ug))
+    events.sort(key=lambda e: e["timestamp"], reverse=True)
+    return Response({"activity": events[:limit]})
+
+
+@api_view(["GET"])
+def public_user_activity_view(request, username):
+    from django.contrib.auth import get_user_model
+    from django.shortcuts import get_object_or_404
+    User = get_user_model()
+    user = get_object_or_404(User, username=username)
+    limit = _safe_limit(request.GET.get("limit"), default=30, maximum=100)
+    rows = (
+        UserGame.objects
+        .filter(user=user)
+        .select_related("user", "game")
+        .order_by("-updated_at")[:limit * 4]
+    )
+    events = []
+    for ug in rows:
+        events.extend(_activity_events(ug))
+    events.sort(key=lambda e: e["timestamp"], reverse=True)
+    return Response({"activity": events[:limit]})
+
+
+@api_view(["GET"])
+def game_price_view(request, app_id):
+    currency = normalize_currency(request.GET.get("currency", "USD"))
+    deal = get_game_deal(app_id, currency)
+    if not deal:
+        return Response({"deal": None})
+    return Response({"deal": deal})
 
 
 @api_view(["GET"])

@@ -8,8 +8,11 @@ import { toastSuccess, toastError } from "@/lib/toast";
 import {
   Gamepad2, CheckCircle2, Heart,
   ExternalLink, ChevronLeft, Plus, Star,
-  ChevronDown, Trash2, RefreshCw, BookMarked, Users,
+  ChevronDown, Trash2, RefreshCw, BookMarked,
+  Globe, Lock, Tag,
 } from "lucide-react";
+import { ratingColor } from "@/lib/utils";
+import { getPreferredCurrency } from "@/lib/preferences";
 
 const STATUS_OPTIONS = [
   { value: "backlog",   label: "Backlog",    icon: <BookMarked   size={14} />, color: "#fbbf24" },
@@ -25,13 +28,23 @@ interface LibraryEntry {
   status: StatusValue;
   rating: number | null;
   is_favourite: boolean;
+  review_text: string | null;
+  review_visibility: "global" | "friends";
 }
 
-interface FriendRating {
+interface GameReview {
   username: string;
   avatar_url: string | null;
   rating: number | null;
+  review_text: string;
+  review_visibility: "global" | "friends";
   status: string;
+  updated_at: string;
+}
+
+interface CommunityScore {
+  avg: number | null;
+  count: number;
 }
 
 interface GameGenre {
@@ -70,10 +83,6 @@ interface LibraryCheckResponse {
 
 interface LibraryEntryResponse extends LibraryEntry {
   error?: string;
-}
-
-interface FriendRatingsResponse {
-  ratings?: FriendRating[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -256,9 +265,13 @@ export default function GameDetailsPage() {
   const [isFavourite, setIsFavourite] = useState(false);
   const [rating, setRating]           = useState<number | null>(null);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
+  const [reviewText, setReviewText]   = useState("");
+  const [reviewVisibility, setReviewVisibility] = useState<"global" | "friends">("global");
   const [saving, setSaving]           = useState(false);
   const [removing, setRemoving]       = useState(false);
-  const [friendRatings, setFriendRatings] = useState<FriendRating[]>([]);
+  const [gameReviews, setGameReviews] = useState<GameReview[]>([]);
+  const [communityScore, setCommunityScore] = useState<CommunityScore | null>(null);
+  const [gameDeal, setGameDeal] = useState<{ official_price: string | null; keyshop_price: string | null; official_url: string | null; keyshop_url: string | null } | null>(null);
 
   useEffect(() => {
     if (!appid) return;
@@ -298,15 +311,30 @@ export default function GameDetailsPage() {
           setStatus(d.entry.status);
           setIsFavourite(d.entry.is_favourite);
           setRating(d.entry.rating);
+          setReviewText(d.entry.review_text ?? "");
+          setReviewVisibility(d.entry.review_visibility ?? "global");
         }
         setCheckDone(true);
       })
       .catch(() => setCheckDone(true));
-    fetch(`/api/games/library/friends-ratings/${appid}`)
-      .then((r) => r.ok ? r.json() : { ratings: [] })
-      .then((d: FriendRatingsResponse) => setFriendRatings(d.ratings ?? []))
-      .catch(() => {});
+    if (appid) {
+      fetchReviews(appid);
+      fetch(`/api/games/price/${appid}?currency=${getPreferredCurrency()}`)
+        .then((r) => r.ok ? r.json() : { deal: null })
+        .then((d) => setGameDeal(d.deal ?? null))
+        .catch(() => {});
+    }
   }, [appid]);
+
+  const fetchReviews = (id: string) => {
+    fetch(`/api/games/reviews/${id}`)
+      .then((r) => r.ok ? r.json() : { reviews: [], community_score: null })
+      .then((d: { reviews: GameReview[]; community_score: CommunityScore }) => {
+        setGameReviews(d.reviews ?? []);
+        setCommunityScore(d.community_score ?? null);
+      })
+      .catch(() => {});
+  };
 
   const handleSave = async () => {
     if (!game || saving) return;
@@ -316,6 +344,8 @@ export default function GameDetailsPage() {
       status,
       is_favourite: isFavourite,
       rating: rating,
+      review_text: reviewText || null,
+      review_visibility: reviewVisibility,
       game_name: game.name,
       game_slug: game.slug,
       game_image: game.background_image,
@@ -330,6 +360,7 @@ export default function GameDetailsPage() {
       setIsFavourite(data.is_favourite);
       setRating(data.rating);
       toastSuccess(entry ? "Library updated!" : `Added to ${status}!`);
+      if (appid) fetchReviews(appid);
     }
     setSaving(false);
   };
@@ -422,6 +453,41 @@ export default function GameDetailsPage() {
               </div>
             )}
 
+            {communityScore && communityScore.count > 0 && (
+              <div className="mb-10">
+                <h2 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4" style={{ fontFamily: "var(--font-syne)" }}>Community Score</h2>
+                <div
+                  className="flex items-center gap-5 px-5 py-4 rounded-2xl"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+                >
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-4xl font-bold tabular-nums" style={{ color: ratingColor(communityScore.avg ?? 0) }}>
+                      {communityScore.avg}
+                    </span>
+                    <span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.3)" }}>/10</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex gap-0.5 mb-1">
+                      {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+                        <div
+                          key={n}
+                          className="flex-1 h-1.5 rounded-full"
+                          style={{
+                            background: n <= Math.round(communityScore.avg ?? 0)
+                              ? ratingColor(n)
+                              : "rgba(255,255,255,0.08)",
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
+                      Based on {communityScore.count} {communityScore.count === 1 ? "rating" : "ratings"} from Backlog.gg players
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {game.screenshots?.length > 0 && (
               <div className="mb-10">
                 <h2 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4" style={{ fontFamily: "var(--font-syne)" }}>Screenshots</h2>
@@ -437,6 +503,58 @@ export default function GameDetailsPage() {
                     <span key={i} className="px-3 py-1 rounded-lg text-xs text-white/50" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                       {p.platform?.name}
                     </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {gameReviews.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4" style={{ fontFamily: "var(--font-syne)" }}>
+                  Player Reviews ({gameReviews.length})
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {gameReviews.map((r, i) => (
+                    <div
+                      key={i}
+                      className="p-4 rounded-2xl"
+                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <img
+                          src={r.avatar_url ?? `https://api.dicebear.com/7.x/identicon/svg?seed=${r.username}`}
+                          alt={r.username}
+                          className="w-8 h-8 rounded-lg object-cover flex-none"
+                          style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-white">{r.username}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span
+                              className="text-[10px] capitalize"
+                              style={{ color: STATUS_COLORS[r.status] ?? "rgba(255,255,255,0.4)" }}
+                            >
+                              {r.status}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-none">
+                          {r.rating != null && (
+                            <span className="flex items-center gap-1 text-sm font-bold tabular-nums" style={{ color: ratingColor(r.rating) }}>
+                              <Star size={11} fill="currentColor" />
+                              {r.rating}<span className="text-xs font-normal" style={{ color: "rgba(255,255,255,0.25)" }}>/10</span>
+                            </span>
+                          )}
+                          {r.review_visibility === "friends"
+                            ? <Lock size={10} style={{ color: "rgba(255,255,255,0.2)" }} />
+                            : <Globe size={10} style={{ color: "rgba(255,255,255,0.2)" }} />
+                          }
+                        </div>
+                      </div>
+                      <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                        {r.review_text}
+                      </p>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -490,8 +608,8 @@ export default function GameDetailsPage() {
                       <p className="text-[10px] text-white/30 uppercase tracking-wider">Your Rating</p>
                       {(hoverRating ?? rating) != null ? (
                         <span
-                          className="text-base font-black leading-none"
-                          style={{ fontFamily: "var(--font-syne)", color: "#fbbf24" }}
+                          className="text-base font-bold leading-none tabular-nums"
+                          style={{ color: ratingColor(hoverRating ?? rating ?? 0) }}
                         >
                           {hoverRating ?? rating}
                           <span className="text-xs font-normal" style={{ color: "rgba(255,255,255,0.25)" }}>/10</span>
@@ -511,7 +629,7 @@ export default function GameDetailsPage() {
                             onMouseLeave={() => setHoverRating(null)}
                             className="h-9 rounded-lg text-sm font-bold transition-all duration-100"
                             style={active
-                              ? { background: "linear-gradient(135deg, #f59e0b, #fbbf24)", color: "rgb(10,9,18)", boxShadow: "0 2px 8px rgba(251,191,36,0.35)" }
+                              ? { background: ratingColor(n), color: "rgb(10,9,18)", boxShadow: `0 2px 8px ${ratingColor(n)}55` }
                               : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)" }
                             }
                           >
@@ -520,6 +638,40 @@ export default function GameDetailsPage() {
                         );
                       })}
                     </div>
+                  </div>
+                )}
+
+                {inLibrary && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] text-white/30 uppercase tracking-wider">Your Review</p>
+                      <button
+                        onClick={() => setReviewVisibility((v) => v === "global" ? "friends" : "global")}
+                        className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium transition-all"
+                        style={{
+                          background: reviewVisibility === "friends" ? "rgba(167,139,250,0.12)" : "rgba(255,255,255,0.05)",
+                          border: reviewVisibility === "friends" ? "1px solid rgba(167,139,250,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                          color: reviewVisibility === "friends" ? "#a78bfa" : "rgba(255,255,255,0.35)",
+                        }}
+                      >
+                        {reviewVisibility === "friends" ? <Lock size={10} /> : <Globe size={10} />}
+                        {reviewVisibility === "friends" ? "Friends only" : "Public"}
+                      </button>
+                    </div>
+                    <textarea
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      placeholder="Write your review…"
+                      rows={3}
+                      className="w-full resize-none rounded-xl px-3 py-2.5 text-sm outline-none transition-all"
+                      style={{
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        color: "rgba(255,255,255,0.8)",
+                      }}
+                      onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(135,86,241,0.4)"; }}
+                      onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(255,255,255,0.08)"; }}
+                    />
                   </div>
                 )}
 
@@ -608,67 +760,52 @@ export default function GameDetailsPage() {
               </div>
             </div>
 
-            {friendRatings.length > 0 && (
-              <div
-                className="rounded-2xl overflow-hidden"
-                style={{ background: "rgb(13,14,22)", border: "1px solid rgba(255,255,255,0.08)" }}
-              >
-                <div
-                  className="flex items-center gap-2.5 px-5 py-4 border-b"
-                  style={{ borderColor: "rgba(255,255,255,0.07)" }}
-                >
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ background: "rgba(135,86,241,0.15)", border: "1px solid rgba(135,86,241,0.2)" }}
-                  >
-                    <Users size={13} style={{ color: "var(--backlog-purple)" }} />
-                  </div>
-                  <span className="text-sm font-bold text-white/80" style={{ fontFamily: "var(--font-syne)" }}>
-                    Friends
-                  </span>
+          {gameDeal && (gameDeal.official_price || gameDeal.keyshop_price) && (
+            <div
+              className="rounded-2xl overflow-hidden"
+              style={{ background: "rgb(13,14,22)", border: "1px solid rgba(52,211,153,0.2)" }}
+            >
+              <div className="flex items-center gap-2.5 px-5 py-3 border-b" style={{ borderColor: "rgba(52,211,153,0.12)" }}>
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                  <Tag size={12} style={{ color: "#34d399" }} />
                 </div>
-                <div className="p-3 flex flex-col gap-1.5">
-                  {friendRatings.map((fr) => {
-                    const statusColor = STATUS_COLORS[fr.status] ?? "rgba(255,255,255,0.4)";
-                    return (
-                      <div
-                        key={fr.username}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
-                        style={{ background: "rgba(255,255,255,0.02)" }}
-                      >
-                        <img
-                          src={fr.avatar_url ?? `https://api.dicebear.com/7.x/identicon/svg?seed=${fr.username}`}
-                          className="w-8 h-8 rounded-lg object-cover flex-none"
-                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
-                          alt={fr.username}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white/80 text-sm font-medium truncate">{fr.username}</p>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span
-                              className="w-1.5 h-1.5 rounded-full flex-none"
-                              style={{ background: statusColor }}
-                            />
-                            <span className="text-xs capitalize" style={{ color: "rgba(255,255,255,0.35)" }}>
-                              {fr.status}
-                            </span>
-                          </div>
-                        </div>
-                        {fr.rating != null && (
-                          <span
-                            className="text-sm font-black flex-none"
-                            style={{ fontFamily: "var(--font-syne)", color: "#fbbf24" }}
-                          >
-                            {fr.rating}
-                            <span className="text-xs font-normal" style={{ color: "rgba(255,255,255,0.2)" }}>/10</span>
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <span className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.7)", fontFamily: "var(--font-syne)" }}>Prices on GG.deals</span>
               </div>
-            )}
+              <div className="px-4 py-4 flex flex-col gap-2.5">
+                {gameDeal.official_price && gameDeal.official_url && (
+                  <a
+                    href={gameDeal.official_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-150 hover:brightness-110"
+                    style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)" }}
+                  >
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: "rgba(52,211,153,0.6)" }}>Official stores</p>
+                      <span className="text-lg font-black tabular-nums" style={{ color: "#34d399" }}>{gameDeal.official_price}</span>
+                    </div>
+                    <ExternalLink size={13} style={{ color: "rgba(52,211,153,0.5)" }} />
+                  </a>
+                )}
+                {gameDeal.keyshop_price && gameDeal.keyshop_url && gameDeal.keyshop_price !== gameDeal.official_price && (
+                  <a
+                    href={gameDeal.keyshop_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-150 hover:brightness-110"
+                    style={{ background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)" }}
+                  >
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: "rgba(167,139,250,0.6)" }}>Key shops</p>
+                      <span className="text-lg font-black tabular-nums" style={{ color: "#a78bfa" }}>{gameDeal.keyshop_price}</span>
+                    </div>
+                    <ExternalLink size={13} style={{ color: "rgba(167,139,250,0.5)" }} />
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
           </div>
 
         </div>

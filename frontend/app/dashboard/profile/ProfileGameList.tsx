@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { Gamepad2, Star } from "lucide-react";
 import Link from "next/link";
 import { useRecentGames, useFavouriteGames, LibraryGame } from "@/hooks/useLibrary";
+import { ratingColor } from "@/lib/utils";
 
 const STATUS_COLORS: Record<string, string> = {
   playing:   "#60a5fa",
@@ -26,7 +27,6 @@ function useHorizontalDrag() {
     moved.current = false;
     const startX = event.clientX;
     const startScroll = element.scrollLeft;
-    element.setPointerCapture(event.pointerId);
     element.style.cursor = "grabbing";
 
     const onPointerMove = (moveEvent: PointerEvent) => {
@@ -53,19 +53,21 @@ export default function ProfileGameList() {
   const { games: favouriteGames, loading: favLoading    } = useFavouriteGames();
 
   return (
-    <div className="h-full min-h-0 flex flex-col justify-between gap-5">
+    <div className="flex flex-col gap-8">
       <GameSection
         icon={<Gamepad2 size={14} />}
         title="Recent Activity"
         games={recentGames}
         loading={recentLoading}
       />
-      <GameSection
-        icon={<Star size={14} />}
-        title="Favourite Games"
-        games={favouriteGames}
-        loading={favLoading}
-      />
+      {(favLoading || favouriteGames.length > 0) && (
+        <GameSection
+          icon={<Star size={14} />}
+          title="Favourite Games"
+          games={favouriteGames}
+          loading={favLoading}
+        />
+      )}
     </div>
   );
 }
@@ -229,8 +231,8 @@ function GameCard({ userGame, dragging }: { userGame: LibraryGame; dragging?: Re
               className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold"
               style={{
                 background: "rgba(0,0,0,0.65)",
-                border: "1px solid rgba(251,191,36,0.4)",
-                color: "#fbbf24",
+                border: `1px solid ${ratingColor(rating!)}66`,
+                color: ratingColor(rating!),
                 backdropFilter: "blur(6px)",
               }}
             >
@@ -257,7 +259,7 @@ function GameCard({ userGame, dragging }: { userGame: LibraryGame; dragging?: Re
             </span>
           </div>
           {rating != null && (
-            <span className="text-xs font-semibold" style={{ color: "rgba(251,191,36,0.7)" }}>
+            <span className="text-xs font-semibold tabular-nums" style={{ color: ratingColor(rating) }}>
               ★ {rating}/10
             </span>
           )}

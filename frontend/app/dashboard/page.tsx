@@ -78,7 +78,6 @@ function useHorizontalDrag() {
     moved.current = false;
     const startX = event.clientX;
     const startScroll = element.scrollLeft;
-    element.setPointerCapture(event.pointerId);
     element.style.cursor = "grabbing";
 
     const onPointerMove = (moveEvent: PointerEvent) => {

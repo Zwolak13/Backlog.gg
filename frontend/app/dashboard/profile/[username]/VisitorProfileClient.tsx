@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Calendar, BarChart3, Users, Gamepad2, Star, Clock4, UserMinus, UserPlus, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, BarChart3, Users, Gamepad2, Star, UserMinus, UserPlus, Clock } from "lucide-react";
+import ProfileActivity from "../ProfileActivity";
+import { ratingColor } from "@/lib/utils";
 import { usePresence } from "@/hooks/usePresence";
 import { toastSuccess, toastError } from "@/lib/toast";
 
@@ -366,7 +368,7 @@ export default function VisitorProfileClient({ username }: { username: string })
               { label: "Wishlist",  value: stats?.wishlist  ?? 0, color: "#a78bfa" },
             ].map((s, i) => (
               <div key={s.label} className="flex flex-col items-center py-4 flex-1 select-none" style={{ borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-                <span className="text-[1.6rem] font-black leading-none mb-1" style={{ fontFamily: "var(--font-syne)", color: s.color }}>{s.value}</span>
+                <span className="text-[1.6rem] font-bold tabular-nums leading-none mb-1" style={{ color: s.color }}>{s.value}</span>
                 <span className="text-[11px] font-medium tracking-wide" style={{ color: "rgba(255,255,255,0.28)" }}>{s.label}</span>
               </div>
             ))}
@@ -404,24 +406,13 @@ export default function VisitorProfileClient({ username }: { username: string })
           {activeTab === "Games" && (
             <div className="flex flex-col gap-10">
               <GameSection icon={<Gamepad2 size={14} />} title="Recent Activity" games={recentGames} loading={recentLoading} />
-              <GameSection icon={<Star size={14} />} title="Favourite Games" games={favouriteGames} loading={favLoading} />
+              {(favLoading || favouriteGames.length > 0) && (
+                <GameSection icon={<Star size={14} />} title="Favourite Games" games={favouriteGames} loading={favLoading} />
+              )}
             </div>
           )}
 
-          {activeTab === "Activity" && (
-            <div
-              className="flex flex-col items-center justify-center py-28 gap-4 rounded-2xl"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.07)" }}
-            >
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "rgba(135,86,241,0.1)", border: "1px solid rgba(135,86,241,0.2)" }}>
-                <Clock4 size={26} style={{ color: "var(--backlog-purple)" }} />
-              </div>
-              <div className="text-center">
-                <p className="text-white/50 font-semibold mb-1">No activity yet</p>
-                <p className="text-white/25 text-sm max-w-xs">Recent game sessions will appear here.</p>
-              </div>
-            </div>
-          )}
+          {activeTab === "Activity" && <ProfileActivity username={username} />}
 
           {activeTab === "Library" && (
             <div>
@@ -464,7 +455,7 @@ export default function VisitorProfileClient({ username }: { username: string })
                         <p className="text-white text-sm font-semibold leading-tight line-clamp-2 drop-shadow-md group-hover:text-[var(--backlog-purple)] transition-colors">{ug.game.name}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-white/40 text-xs capitalize">{ug.status}</span>
-                          {ug.rating != null && <span className="text-yellow-400 text-xs">★ {ug.rating}</span>}
+                          {ug.rating != null && <span className="text-xs tabular-nums" style={{ color: ratingColor(ug.rating) }}>★ {ug.rating}</span>}
                         </div>
                       </div>
                     </Link>
@@ -487,7 +478,7 @@ export default function VisitorProfileClient({ username }: { username: string })
 
             <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
               <p className="text-[10px] text-white/28 uppercase tracking-[0.14em] font-semibold mb-1">Total games</p>
-              <p className="text-5xl font-black text-white leading-none" style={{ fontFamily: "var(--font-syne)" }}>{total}</p>
+              <p className="text-5xl font-bold tabular-nums text-white leading-none">{total}</p>
               {total > 0 && (
                 <div className="mt-4 flex h-2 rounded-full overflow-hidden gap-0.5">
                   {STATS_CONFIG.map((s) => {
@@ -508,7 +499,7 @@ export default function VisitorProfileClient({ username }: { username: string })
                     <div className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: s.color, boxShadow: `0 0 5px ${s.color}` }} />
                     <span className="flex-1 text-sm font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>{s.label}</span>
                     <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>{pct}%</span>
-                    <span className="font-bold text-base w-7 text-right" style={{ color: s.color }}>{val}</span>
+                    <span className="font-bold text-base tabular-nums min-w-[1.5rem] text-right" style={{ color: s.color }}>{val}</span>
                   </div>
                 );
               })}
@@ -645,7 +636,7 @@ function GameCard({ userGame }: { userGame: LibraryGame }) {
             </div>
           )}
           {rating != null && (
-            <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold" style={{ background: "rgba(0,0,0,0.65)", border: "1px solid rgba(251,191,36,0.4)", color: "#fbbf24", backdropFilter: "blur(6px)" }}>
+            <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold tabular-nums" style={{ background: "rgba(0,0,0,0.65)", border: `1px solid ${ratingColor(rating)}55`, color: ratingColor(rating), backdropFilter: "blur(6px)" }}>
               <Star size={9} fill="currentColor" />
               {rating}
             </div>
@@ -660,7 +651,7 @@ function GameCard({ userGame }: { userGame: LibraryGame }) {
             <span className="w-2 h-2 rounded-full flex-none" style={{ background: statusColor, boxShadow: `0 0 5px ${statusColor}` }} />
             <span className="text-xs font-medium capitalize" style={{ color: "rgba(255,255,255,0.45)" }}>{status}</span>
           </div>
-          {rating != null && <span className="text-xs font-semibold" style={{ color: "rgba(251,191,36,0.7)" }}>★ {rating}/10</span>}
+          {rating != null && <span className="text-xs font-semibold tabular-nums" style={{ color: ratingColor(rating) }}>★ {rating}/10</span>}
         </div>
       </div>
     </Link>

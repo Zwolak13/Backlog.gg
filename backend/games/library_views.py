@@ -12,6 +12,8 @@ def serialize_user_game(ug):
         "rating": ug.rating,
         "is_favourite": ug.is_favourite,
         "hours_played": ug.hours_played,
+        "review_text": ug.review_text,
+        "review_visibility": ug.review_visibility,
         "created_at": ug.created_at,
         "updated_at": ug.updated_at,
         "game": {
@@ -59,6 +61,8 @@ def library_view(request):
             "rating": request.data.get("rating"),
             "is_favourite": request.data.get("is_favourite", False),
             "hours_played": request.data.get("hours_played"),
+            "review_text": request.data.get("review_text"),
+            "review_visibility": request.data.get("review_visibility", "global"),
         },
     )
     return Response(serialize_user_game(ug), status=201 if created else 200)
@@ -73,7 +77,7 @@ def library_item_view(request, pk):
         ug.delete()
         return Response({"message": "Removed from library"})
 
-    for field in ("status", "rating", "is_favourite", "hours_played"):
+    for field in ("status", "rating", "is_favourite", "hours_played", "review_text", "review_visibility"):
         if field in request.data:
             setattr(ug, field, request.data[field])
     ug.save()
@@ -192,3 +196,56 @@ def friends_ratings_view(request, game_id):
         for ug in qs
     ]
     return Response({"ratings": data})
+
+
+@api_view(["GET"])
+def game_reviews_view(request, game_id):
+    from django.db.models import Avg, Count, Q
+    from users.friendships import get_friend_ids
+
+    game = get_object_or_404(Game, id=game_id)
+
+    score_data = (
+        UserGame.objects
+        .filter(game=game, rating__isnull=False)
+        .aggregate(avg=Avg("rating"), count=Count("id"))
+    )
+
+    qs = (
+        UserGame.objects
+        .filter(game=game, review_text__isnull=False)
+        .exclude(review_text="")
+        .select_related("user")
+    )
+
+    if request.user.is_authenticated:
+        friend_ids = get_friend_ids(request.user)
+        qs = qs.filter(
+            Q(review_visibility="global") |
+            Q(user_id__in=friend_ids) |
+            Q(user=request.user)
+        )
+    else:
+        qs = qs.filter(review_visibility="global")
+
+    reviews = [
+        {
+            "username": ug.user.username,
+            "avatar_url": ug.user.avatar_url,
+            "rating": ug.rating,
+            "review_text": ug.review_text,
+            "review_visibility": ug.review_visibility,
+            "status": ug.status,
+            "updated_at": ug.updated_at,
+        }
+        for ug in qs.order_by("-updated_at")
+    ]
+
+    avg = score_data["avg"]
+    return Response({
+        "reviews": reviews,
+        "community_score": {
+            "avg": round(avg, 1) if avg is not None else None,
+            "count": score_data["count"],
+        },
+    })

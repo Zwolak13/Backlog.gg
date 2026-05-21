@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Syne } from "next/font/google";
+import { Syne, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 
 const syne = Syne({ subsets: ["latin"], variable: "--font-syne", display: "swap" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Backlog.gg",
@@ -16,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={syne.variable}>
-      <body>
+    <html lang="en" className={`${syne.variable} ${inter.variable}`}>
+      <body className="font-[family-name:var(--font-inter)]">
         {children}
 
         <Toaster

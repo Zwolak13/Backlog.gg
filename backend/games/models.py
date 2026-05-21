@@ -32,12 +32,19 @@ class UserGame(models.Model):
         ("wishlist", "Wishlist"),
     ]
 
+    VISIBILITY_CHOICES = [
+        ("global", "Global"),
+        ("friends", "Friends"),
+    ]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     rating = models.IntegerField(blank=True, null=True)
     is_favourite = models.BooleanField(default=False)
     hours_played = models.FloatField(blank=True, null=True)
+    review_text = models.TextField(blank=True, null=True)
+    review_visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default="global")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

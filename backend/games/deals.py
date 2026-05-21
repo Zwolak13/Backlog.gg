@@ -21,9 +21,14 @@ def _format_price(cents: int | None, currency: str = "USD") -> str | None:
     if cents == 0:
         return "Free"
 
-    symbols = {"USD": "$", "EUR": "€", "GBP": "£", "PLN": "zł"}
-    prefix = symbols.get(currency, f"{currency} ")
-    return f"{prefix}{cents / 100:.2f}"
+    prefixes  = {"USD": "$", "EUR": "€", "GBP": "£"}
+    suffixes  = {"PLN": " zł"}
+    amount = f"{cents / 100:.2f}"
+    if currency in prefixes:
+        return f"{prefixes[currency]}{amount}"
+    if currency in suffixes:
+        return f"{amount}{suffixes[currency]}"
+    return f"{currency} {amount}"
 
 
 def _parse_price(value: Any) -> float | None:
@@ -58,7 +63,6 @@ def _steam_deals(limit: int, currency: str) -> list[dict]:
             continue
 
         app_id = game["id"]
-        currency = game.get("currency") or "USD"
         deals.append({
             "id": f"steam-{app_id}",
             "app_id": app_id,
@@ -90,18 +94,15 @@ def _extract_gg_entry(data: Any, app_id: int) -> dict | None:
     return None
 
 
-def _best_gg_price(entry: dict) -> tuple[str | None, str | None]:
+def _best_gg_price(entry: dict) -> tuple[float | None, str | None]:
     prices = entry.get("prices") or {}
-    retail = prices.get("currentRetail")
-    keyshop = prices.get("currentKeyshops")
+    retail_num = _parse_price(prices.get("currentRetail"))
+    keyshop_num = _parse_price(prices.get("currentKeyshops"))
 
-    retail_number = _parse_price(retail)
-    keyshop_number = _parse_price(keyshop)
-
-    if retail_number is not None and (keyshop_number is None or retail_number <= keyshop_number):
-        return str(retail), "GG.deals official stores"
-    if keyshop_number is not None:
-        return str(keyshop), "GG.deals keyshops"
+    if retail_num is not None and (keyshop_num is None or retail_num <= keyshop_num):
+        return retail_num, "GG.deals"
+    if keyshop_num is not None:
+        return keyshop_num, "GG.deals"
     return None, None
 
 
@@ -138,7 +139,8 @@ def _enrich_with_gg_deals(deals: list[dict], currency: str) -> list[dict]:
             enriched.append(deal)
             continue
 
-        current_price, source = _best_gg_price(entry)
+        price_num, source = _best_gg_price(entry)
+        current_price = _format_price(int(price_num * 100), currency) if price_num is not None else None
         enriched.append({
             **deal,
             "current_price": current_price or deal["current_price"],
@@ -152,3 +154,51 @@ def _enrich_with_gg_deals(deals: list[dict], currency: str) -> list[dict]:
 def get_dashboard_deals(limit: int = DEFAULT_LIMIT, currency: str = "USD") -> list[dict]:
     normalized_currency = steam.normalize_currency(currency)
     return _enrich_with_gg_deals(_steam_deals(limit, normalized_currency), normalized_currency)
+
+
+def get_game_deal(app_id: int, currency: str = "USD") -> dict | None:
+    api_key = getattr(settings, "GG_DEALS_API_KEY", "")
+    if not api_key:
+        return None
+
+    normalized = steam.normalize_currency(currency)
+    try:
+        response = requests.get(
+            GG_PRICES_URL,
+            params={
+                "ids": str(app_id),
+                "key": api_key,
+                "region": _region_for_currency(normalized),
+            },
+            headers={"User-Agent": "Backlog.gg/1.0"},
+            timeout=8,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except Exception:
+        return None
+
+    data = payload.get("data") if isinstance(payload, dict) else None
+    if not data:
+        return None
+
+    entry = _extract_gg_entry(data, app_id)
+    if not entry:
+        return None
+
+    prices = entry.get("prices") or {}
+    retail_raw = prices.get("currentRetail")
+    keyshop_raw = prices.get("currentKeyshops")
+    retail_num = _parse_price(retail_raw)
+    keyshop_num = _parse_price(keyshop_raw)
+
+    official_price = _format_price(int(retail_num * 100), normalized) if retail_num is not None else None
+    keyshop_price = _format_price(int(keyshop_num * 100), normalized) if keyshop_num is not None else None
+    base_url = entry.get("url") or f"https://gg.deals/steam/app/{app_id}/"
+
+    return {
+        "official_price": official_price,
+        "keyshop_price": keyshop_price,
+        "official_url": f"{base_url}#official-stores" if official_price else None,
+        "keyshop_url": f"{base_url}#keyshops" if keyshop_price else None,
+    }

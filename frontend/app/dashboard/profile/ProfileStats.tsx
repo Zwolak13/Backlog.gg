@@ -39,10 +39,7 @@ export default function ProfileStats() {
 
       <div className="px-4 pt-3 pb-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         <p className="text-[10px] text-white/28 uppercase tracking-[0.14em] font-semibold mb-1">Total games</p>
-        <p
-          className="text-4xl font-black text-white leading-none"
-          style={{ fontFamily: "var(--font-syne)" }}
-        >
+        <p className="text-4xl font-bold text-white leading-none tabular-nums">
           {total}
         </p>
 
@@ -80,7 +77,7 @@ export default function ProfileStats() {
               />
               <span className="flex-1 text-sm font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>{s.label}</span>
               <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>{pct}%</span>
-              <span className="font-bold text-base w-7 text-right" style={{ color: s.color }}>{val}</span>
+              <span className="font-semibold text-base tabular-nums min-w-[1.5rem] text-right" style={{ color: s.color }}>{val}</span>
             </div>
           );
         })}

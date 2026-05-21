@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLibrary, LibraryGame } from "@/hooks/useLibrary";
 import Link from "next/link";
 import { Star, Trash2 } from "lucide-react";
+import { ratingColor } from "@/lib/utils";
 
 const STATUSES = ["all", "playing", "completed", "backlog", "wishlist"] as const;
 
@@ -81,7 +82,7 @@ function LibraryCard({
   const { game, status, rating, is_favourite } = userGame;
 
   return (
-    <div className="group relative rounded-lg overflow-hidden border border-white/[0.07] hover:border-white/20 transition-all duration-300 bg-[rgb(28,30,40)] aspect-[3/4]">
+    <Link href={`/dashboard/games/${game.id}`} className="group relative rounded-lg overflow-hidden border border-white/[0.07] hover:border-white/20 transition-all duration-300 bg-[rgb(28,30,40)] aspect-[3/4] block">
       {game.background_image ? (
         <img
           src={game.background_image}
@@ -96,13 +97,13 @@ function LibraryCard({
 
       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
-          onClick={onToggleFavourite}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavourite(); }}
           className={`p-1.5 rounded-lg backdrop-blur-md border transition ${is_favourite ? "bg-yellow-500/80 border-yellow-400/50 text-white" : "bg-black/50 border-white/20 text-white/60 hover:text-yellow-400"}`}
         >
           <Star size={13} fill={is_favourite ? "currentColor" : "none"} />
         </button>
         <button
-          onClick={onRemove}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemove(); }}
           className="p-1.5 rounded-lg bg-black/50 backdrop-blur-md border border-white/20 text-white/60 hover:text-red-400 transition"
         >
           <Trash2 size={13} />
@@ -110,18 +111,16 @@ function LibraryCard({
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-3">
-        <Link href={`/dashboard/games/${game.id}`}>
-          <p className="text-white text-sm font-semibold leading-tight line-clamp-2 drop-shadow-md hover:text-[var(--backlog-purple)] transition-colors">
-            {game.name}
-          </p>
-        </Link>
+        <p className="text-white text-sm font-semibold leading-tight line-clamp-2 drop-shadow-md group-hover:text-[var(--backlog-purple)] transition-colors">
+          {game.name}
+        </p>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-white/40 text-xs capitalize">{status}</span>
           {rating != null && (
-            <span className="text-yellow-400 text-xs">★ {rating}</span>
+            <span className="text-xs tabular-nums" style={{ color: ratingColor(rating) }}>★ {rating}</span>
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

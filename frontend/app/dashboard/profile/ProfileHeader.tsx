@@ -168,8 +168,8 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
                 style={{ borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none" }}
               >
                 <span
-                  className="text-[1.25rem] font-black leading-none mb-0.5"
-                  style={{ fontFamily: "var(--font-syne)", color: s.color }}
+                  className="text-[1.25rem] font-bold leading-none mb-0.5 tabular-nums"
+                  style={{ color: s.color }}
                 >
                   {s.value}
                 </span>
