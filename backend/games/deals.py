@@ -140,7 +140,7 @@ def _enrich_with_gg_deals(deals: list[dict], currency: str) -> list[dict]:
             continue
 
         price_num, source = _best_gg_price(entry)
-        current_price = _format_price(int(price_num * 100), currency) if price_num is not None else None
+        current_price = _format_price(round(price_num * 100), currency) if price_num is not None else None
         enriched.append({
             **deal,
             "current_price": current_price or deal["current_price"],
@@ -192,8 +192,8 @@ def get_game_deal(app_id: int, currency: str = "USD") -> dict | None:
     retail_num = _parse_price(retail_raw)
     keyshop_num = _parse_price(keyshop_raw)
 
-    official_price = _format_price(int(retail_num * 100), normalized) if retail_num is not None else None
-    keyshop_price = _format_price(int(keyshop_num * 100), normalized) if keyshop_num is not None else None
+    official_price = _format_price(round(retail_num * 100), normalized) if retail_num is not None else None
+    keyshop_price = _format_price(round(keyshop_num * 100), normalized) if keyshop_num is not None else None
     base_url = entry.get("url") or f"https://gg.deals/steam/app/{app_id}/"
 
     return {
