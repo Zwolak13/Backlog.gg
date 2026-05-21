@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Flame, Gamepad2, Heart, Library, Percent, Sparkles, Star, Users } from "lucide-react";
+import { ExternalLink, Flame, Gamepad2, Heart, Library, MessageSquare, Percent, Sparkles, Star, Users } from "lucide-react";
 import { getMe, ApiResponse, User } from "@/lib/api";
 import { getPreferredCurrency } from "@/lib/preferences";
 
@@ -48,7 +48,8 @@ type ActivityType =
   | "rated_game"
   | "added_to_wishlist"
   | "added_to_favourites"
-  | "added_to_library";
+  | "added_to_library"
+  | "wrote_review";
 
 interface ActivityItem {
   id: string;
@@ -151,6 +152,20 @@ function actionCopy(item: ActivityItem) {
         label: "added",
         meta: item.extra.status ?? null,
         color: "#60a5fa",
+      };
+    case "wrote_review":
+      return {
+        icon: <MessageSquare size={14} />,
+        label: "reviewed",
+        meta: item.extra.rating != null ? `${item.extra.rating}/10` : null,
+        color: "#c084fc",
+      };
+    default:
+      return {
+        icon: <Gamepad2 size={14} />,
+        label: "updated",
+        meta: item.extra.status ?? null,
+        color: "#94a3b8",
       };
   }
 }
