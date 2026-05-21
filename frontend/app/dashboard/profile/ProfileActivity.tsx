@@ -138,7 +138,10 @@ export default function ProfileActivity({ username }: { username?: string }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-3">
+      <div
+        className="h-full min-h-0 overflow-y-auto pr-1 flex flex-col gap-3"
+        style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(135,86,241,0.25) transparent" }}
+      >
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
         ))}
@@ -164,7 +167,10 @@ export default function ProfileActivity({ username }: { username?: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div
+      className="h-full min-h-0 overflow-y-auto pr-1 flex flex-col gap-3"
+      style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(135,86,241,0.25) transparent" }}
+    >
       {activity.map((item) => <ActivityRow key={item.id} item={item} />)}
     </div>
   );
