@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import list_games_view, game_details_view
-from .dashboard_views import bundles_view, deals_view, friends_activity_view, game_price_view, own_activity_view, public_user_activity_view
+from .dashboard_views import bundles_view, deals_view, friends_activity_view, game_price_view, own_activity_view, public_user_activity_view, spotlight_view
 from .library_views import (
     library_view,
     library_item_view,
@@ -16,9 +16,16 @@ from .library_views import (
     public_library_favourites_view,
 )
 from .social_views import social_reviews_view, social_users_view
+from .recommendations_views import recommendations_view, chat_view, chat_stream_view, sessions_view, session_detail_view
 
 urlpatterns = [
+    path("recommendations/", recommendations_view),
+    path("recommendations/chat/", chat_view),
+    path("recommendations/chat/stream/", chat_stream_view),
+    path("recommendations/sessions/", sessions_view),
+    path("recommendations/sessions/<int:session_id>/", session_detail_view),
     path("", list_games_view),
+    path("spotlight/", spotlight_view),
     path("deals/", deals_view),
     path("price/<int:app_id>/", game_price_view),
     path("bundles/", bundles_view),

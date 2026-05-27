@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Home, User, LogOut, Menu, X, Gamepad2, Users } from "lucide-react";
+import { Home, User, LogOut, Menu, X, Gamepad2, Users, Sparkles } from "lucide-react";
 import { logout } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
@@ -16,6 +16,7 @@ export default function Sidebar() {
     { name: "Games", icon: <Gamepad2 size={22} />, href: "/dashboard/games" },
     { name: "Social", icon: <Users size={22} />, href: "/dashboard/social" },
     { name: "Profile", icon: <User size={22} />, href: "/dashboard/profile" },
+    { name: "AI Advisor", icon: <Sparkles size={22} />, href: "/dashboard/ai-chat" },
   ];
 
   const handleLogout = async () => {

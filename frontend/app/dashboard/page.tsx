@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Flame, Gamepad2, Heart, Library, MessageSquare, Percent, Sparkles, Star, Users } from "lucide-react";
+import { ChevronRight, Clock, ExternalLink, Flame, Gamepad2, Heart, Library, MessageSquare, Percent, RefreshCw, Sparkles, Star, Users } from "lucide-react";
 import { getMe, ApiResponse, User } from "@/lib/api";
 import { getPreferredCurrency } from "@/lib/preferences";
 
@@ -25,16 +25,19 @@ interface Deal {
   deal_url: string;
 }
 
-interface BundleDeal {
-  id: string;
-  title: string;
-  image: string | null;
-  price: string | null;
-  retail_price: string | null;
-  discount_percent: number | null;
-  source: string | null;
-  games_count: number | null;
-  bundle_url: string;
+interface SpotlightGame {
+  game_id: number;
+  name: string;
+  background_image: string | null;
+  portrait_image: string | null;
+  metacritic: number | null;
+  days_in_backlog: number;
+  added_at: string;
+}
+
+interface SpotlightData {
+  spotlight: SpotlightGame | null;
+  backlog_count: number;
 }
 
 interface ActivityGame {
@@ -64,9 +67,20 @@ interface ActivityItem {
   };
 }
 
+interface Recommendation {
+  name: string;
+  steam_appid: number;
+  reason_tag: string;
+  reason: string;
+  description: string;
+  background_image: string | null;
+  slug: string | null;
+}
+
 const initialDeals: LoadState<Deal[]> = { data: [], loading: true, error: null };
-const initialBundles: LoadState<BundleDeal[]> = { data: [], loading: true, error: null };
+const initialSpotlight: LoadState<SpotlightData> = { data: { spotlight: null, backlog_count: 0 }, loading: true, error: null };
 const initialActivity: LoadState<ActivityItem[]> = { data: [], loading: true, error: null };
+const initialRecommendations: LoadState<Recommendation[]> = { data: [], loading: true, error: null };
 
 function useHorizontalDrag() {
   const ref = useRef<HTMLDivElement>(null);
@@ -229,16 +243,9 @@ function DealsSkeleton() {
   );
 }
 
-function BundlesSkeleton() {
+function SpotlightSkeleton() {
   return (
-    <div className="relative overflow-hidden">
-      <div className="flex gap-3" style={{ width: "max-content" }}>
-        {Array.from({ length: 18 }).map((_, index) => (
-          <div key={index} className="flex-none rounded-xl bg-white/[0.06] animate-pulse" style={{ width: 244, height: 112 }} />
-        ))}
-      </div>
-      <div className="absolute right-0 top-0 bottom-0 w-16 pointer-events-none" style={{ background: "linear-gradient(to left, rgb(10,11,17), transparent)" }} />
-    </div>
+    <div className="rounded-xl bg-white/[0.06] animate-pulse" style={{ height: 130 }} />
   );
 }
 
@@ -393,126 +400,138 @@ function DealsSection({ state }: { state: LoadState<Deal[]> }) {
   );
 }
 
-function BundleCard({ bundle, dragging }: { bundle: BundleDeal; dragging?: React.MutableRefObject<boolean> }) {
-  return (
-    <a
-      href={bundle.bundle_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={(event) => {
-        if (dragging?.current) event.preventDefault();
-      }}
-      className="group relative flex-none overflow-hidden rounded-xl block"
-      draggable={false}
-      style={{ width: 244, height: 112, background: "rgb(20,22,34)", border: "1px solid rgba(255,255,255,0.08)" }}
-    >
-      {bundle.image ? (
-        <Image
-          src={bundle.image}
-          alt={bundle.title}
-          fill
-          className="object-cover opacity-80 transition-transform duration-500 group-hover:scale-105"
-          sizes="244px"
-          draggable={false}
-        />
-      ) : (
-        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(52,211,153,0.2), rgba(135,86,241,0.16) 45%, rgba(10,11,17,0.92))" }} />
-      )}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/65 to-black/20" />
-      <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "linear-gradient(135deg, white 1px, transparent 1px)", backgroundSize: "16px 16px" }} />
-      <div className="absolute top-2 left-2 flex gap-1.5">
-        {bundle.discount_percent != null && (
-          <span className="rounded-md px-2 py-1 text-[10px] font-black text-white" style={{ background: "rgba(52,211,153,0.86)" }}>
-            -{bundle.discount_percent}%
-          </span>
-        )}
-        {bundle.games_count != null && (
-          <span className="rounded-md px-2 py-1 text-[10px] font-bold text-white/72 bg-black/45 border border-white/10">
-            {bundle.games_count} games
-          </span>
-        )}
-      </div>
-      <div className="absolute top-2 right-2 w-7 h-7 rounded-md flex items-center justify-center text-white/70 bg-black/45 border border-white/10">
-        <ExternalLink size={12} />
-      </div>
-      <div className="absolute bottom-0 left-0 right-0 p-3">
-        <p className="text-white text-sm font-bold leading-tight line-clamp-1">{bundle.title}</p>
-        <div className="flex items-end justify-between gap-3 mt-2">
-          <div className="min-w-0">
-            <p className="text-base font-black text-white leading-none" style={{ fontFamily: "var(--font-syne)" }}>
-              {bundle.price ?? "See bundle"}
-            </p>
-            {bundle.retail_price && (
-              <p className="text-white/35 text-[10px] line-through mt-0.5">{bundle.retail_price}</p>
-            )}
-          </div>
-          {bundle.source && (
-            <span className="rounded-md px-1.5 py-0.5 text-[9px] font-semibold text-white/50 bg-white/[0.07] border border-white/[0.08] truncate max-w-20">
-              {bundle.source}
-            </span>
-          )}
-        </div>
-      </div>
-    </a>
-  );
+function daysLabel(days: number) {
+  if (days === 0) return "Added today";
+  if (days === 1) return "Waiting 1 day";
+  if (days < 30) return `Waiting ${days} days`;
+  if (days < 60) return "Waiting about a month";
+  const months = Math.floor(days / 30);
+  return `Waiting ${months} months`;
 }
 
-function BundlesSection({ state }: { state: LoadState<BundleDeal[]> }) {
-  const { ref, moved, onPointerDown } = useHorizontalDrag();
-  const loopedBundles = useMemo(() => {
-    if (state.data.length === 0) return [];
-    return Array.from({ length: 4 }).flatMap(() => state.data);
-  }, [state.data]);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element || state.data.length === 0) return;
-    const singleSetWidth = element.scrollWidth / 4;
-    element.scrollLeft = singleSetWidth;
-  }, [ref, state.data]);
-
-  const handleScroll = () => {
-    const element = ref.current;
-    if (!element || state.data.length === 0) return;
-
-    const singleSetWidth = element.scrollWidth / 4;
-    if (singleSetWidth <= 0) return;
-
-    if (element.scrollLeft < singleSetWidth * 0.5) {
-      element.scrollLeft += singleSetWidth;
-    } else if (element.scrollLeft > singleSetWidth * 2.5) {
-      element.scrollLeft -= singleSetWidth;
-    }
-  };
+function BacklogSpotlight({
+  state,
+  onPickAnother,
+  shuffling,
+}: {
+  state: LoadState<SpotlightData>;
+  onPickAnother: (excludeId: number) => void;
+  shuffling: boolean;
+}) {
+  const { spotlight, backlog_count } = state.data;
 
   return (
     <section className="shrink-0">
       <SectionHeader
-        title="Best Bundles"
-        subtitle="Bundle picks from GG.deals when one game is not enough"
-        icon={<Sparkles size={13} />}
-        meta={state.loading ? "Loading" : `${state.data.length}`}
+        title="Backlog Spotlight"
+        subtitle="One game from your backlog, waiting for its moment"
+        icon={<Clock size={13} />}
+        meta={backlog_count > 0 ? `${backlog_count} waiting` : undefined}
       />
-      {state.loading ? <BundlesSkeleton /> : null}
-      {!state.loading && state.error ? <SectionCard><ErrorState message={state.error} compact /></SectionCard> : null}
-      {!state.loading && !state.error && state.data.length === 0 ? (
-        <SectionCard><EmptyState compact title="No bundles found" text="GG.deals did not return bundle picks for the current featured games yet." /></SectionCard>
+
+      {state.loading ? <SpotlightSkeleton /> : null}
+
+      {!state.loading && state.error ? (
+        <SectionCard><ErrorState message={state.error} compact /></SectionCard>
       ) : null}
-      {!state.loading && !state.error && state.data.length > 0 ? (
-        <div className="relative">
-          <div
-            ref={ref}
-            className="flex gap-3 overflow-x-auto select-none [&::-webkit-scrollbar]:hidden"
-            style={{ scrollbarWidth: "none", cursor: "grab", WebkitUserSelect: "none" }}
-            onPointerDown={onPointerDown}
-            onScroll={handleScroll}
-          >
-            {loopedBundles.map((bundle, index) => (
-              <BundleCard key={`${bundle.id}-${index}`} bundle={bundle} dragging={moved} />
-            ))}
+
+      {!state.loading && !state.error && !spotlight ? (
+        <SectionCard>
+          <EmptyState compact title="Your backlog is empty" text="Add games to your backlog and we'll spotlight one here to remind you to play it." />
+        </SectionCard>
+      ) : null}
+
+      {!state.loading && !state.error && spotlight ? (
+        <div
+          className="relative overflow-hidden rounded-xl flex items-stretch"
+          style={{
+            background: "rgb(13,14,22)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            minHeight: 130,
+          }}
+        >
+          {spotlight.background_image && (
+            <div className="absolute inset-0">
+              <Image
+                src={spotlight.background_image}
+                alt=""
+                fill
+                className="object-cover object-center opacity-[0.07]"
+                sizes="100vw"
+                unoptimized
+              />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(13,14,22,0.2), rgb(13,14,22))" }} />
+            </div>
+          )}
+
+          <div className="relative z-10 flex items-stretch w-full gap-5 p-4">
+            <div
+              className="relative shrink-0 rounded-lg overflow-hidden self-stretch"
+              style={{ width: 70, minHeight: 100, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              {spotlight.portrait_image ? (
+                <Image
+                  src={spotlight.portrait_image}
+                  alt={spotlight.name}
+                  fill
+                  className="object-cover"
+                  sizes="70px"
+                  unoptimized
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Gamepad2 size={22} className="text-white/20" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                    style={{ background: "rgba(135,86,241,0.15)", color: "var(--backlog-purple)", border: "1px solid rgba(135,86,241,0.2)" }}
+                  >
+                    <Clock size={9} />
+                    {daysLabel(spotlight.days_in_backlog)}
+                  </span>
+                  {backlog_count > 1 && (
+                    <span className="text-[11px] text-white/25">
+                      +{backlog_count - 1} more in backlog
+                    </span>
+                  )}
+                </div>
+                <p className="text-white font-bold text-base leading-tight truncate" style={{ fontFamily: "var(--font-syne)" }}>
+                  {spotlight.name}
+                </p>
+                {spotlight.metacritic && (
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    Metacritic: <span className="text-white/60 font-semibold">{spotlight.metacritic}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 mt-3">
+                <Link
+                  href={`/dashboard/games/${spotlight.game_id}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                  style={{ background: "rgba(135,86,241,0.2)", color: "var(--backlog-purple)", border: "1px solid rgba(135,86,241,0.28)" }}
+                >
+                  Open Game
+                  <ChevronRight size={12} />
+                </Link>
+                <button
+                  onClick={() => onPickAnother(spotlight.game_id)}
+                  disabled={shuffling || backlog_count <= 1}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-30"
+                  style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.08)" }}
+                >
+                  <RefreshCw size={11} className={shuffling ? "animate-spin" : ""} />
+                  Pick Another
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="absolute left-0 top-0 bottom-0 w-10 pointer-events-none" style={{ background: "linear-gradient(to right, rgb(10,11,17), transparent)" }} />
-          <div className="absolute right-0 top-0 bottom-0 w-16 pointer-events-none" style={{ background: "linear-gradient(to left, rgb(10,11,17), transparent)" }} />
         </div>
       ) : null}
     </section>
@@ -532,46 +551,76 @@ function RecommendationSkeleton() {
   );
 }
 
-function RecommendationPlaceholder({ loading }: { loading: boolean }) {
-  if (loading) return <RecommendationSkeleton />;
+const REC_TONES = [
+  "rgba(96,165,250,0.28)",
+  "rgba(167,139,250,0.28)",
+  "rgba(52,211,153,0.22)",
+];
+
+function RecommendationCard({ rec, tone }: { rec: Recommendation; tone: string }) {
+  const inner = (
+    <div
+      className="relative overflow-hidden rounded-xl min-h-0 h-full"
+      style={{ background: "rgb(20,22,34)", border: "1px solid rgba(255,255,255,0.07)" }}
+    >
+      <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 20%, ${tone}, transparent 58%)` }} />
+      <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "linear-gradient(135deg, white 1px, transparent 1px)", backgroundSize: "18px 18px" }} />
+      <div className="absolute inset-x-0 bottom-0 p-3">
+        <div className="mb-3 h-36 rounded-lg overflow-hidden relative bg-black/20">
+          {rec.background_image ? (
+            <Image src={rec.background_image} alt={rec.name} fill className="object-cover object-top" unoptimized />
+          ) : (
+            <div className="flex h-full items-center justify-center border border-dashed border-white/10">
+              <Gamepad2 size={28} className="text-white/18" />
+            </div>
+          )}
+        </div>
+        <p className="text-white/80 text-sm font-semibold leading-tight">{rec.name}</p>
+        <p className="text-white/35 text-xs mt-1 leading-relaxed line-clamp-2">{rec.reason}</p>
+      </div>
+      <span
+        className="absolute top-3 left-3 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide"
+        style={{ color: "rgba(255,255,255,0.42)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}
+      >
+        {rec.reason_tag}
+      </span>
+    </div>
+  );
+
+  if (rec.steam_appid > 0) {
+    return (
+      <Link href={`/dashboard/games/${rec.steam_appid}`} className="block min-h-0 hover:opacity-90 transition-opacity">
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="min-h-0">{inner}</div>;
+}
+
+function RecommendationSection({ state }: { state: LoadState<Recommendation[]> }) {
+  if (state.loading) return <RecommendationSkeleton />;
 
   return (
     <section className="h-full min-h-0 flex flex-col">
       <SectionHeader
-        title="Recommended Games"
-        subtitle="A future home for smart picks from your taste and friends"
+        title="Recommended for You"
+        subtitle="Personalised picks based on your library"
         icon={<Sparkles size={13} />}
-        meta="Preview"
       />
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 min-h-0">
-          {[
-            { title: "Because you finished RPGs", tone: "rgba(96,165,250,0.28)" },
-            { title: "Friend-backed picks", tone: "rgba(167,139,250,0.28)" },
-            { title: "Hidden backlog gem", tone: "rgba(52,211,153,0.22)" },
-          ].map((item, index) => (
-            <div
-              key={item.title}
-              className="relative overflow-hidden rounded-xl min-h-0"
-              style={{ background: "rgb(20,22,34)", border: "1px solid rgba(255,255,255,0.07)" }}
-            >
-              <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 20%, ${item.tone}, transparent 58%)` }} />
-              <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "linear-gradient(135deg, white 1px, transparent 1px)", backgroundSize: "18px 18px" }} />
-              <div className="absolute inset-x-0 bottom-0 p-3">
-                <div className="mb-3 h-36 rounded-lg border border-dashed border-white/10 bg-black/20 flex items-center justify-center">
-                  <Gamepad2 size={28} className="text-white/18" />
-                </div>
-                <p className="text-white/72 text-sm font-semibold leading-tight">{item.title}</p>
-                <p className="text-white/25 text-xs mt-1">Coming soon</p>
-              </div>
-              <span
-                className="absolute top-3 left-3 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide"
-                style={{ color: "rgba(255,255,255,0.42)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}
-              >
-                Slot {index + 1}
-              </span>
-            </div>
+      {state.error ? (
+        <ErrorState message={state.error} compact />
+      ) : state.data.length === 0 ? (
+        <EmptyState
+          title="No recommendations yet"
+          text="Add some games to your library to get personalised AI picks."
+        />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 min-h-0">
+          {state.data.map((rec, i) => (
+            <RecommendationCard key={rec.name} rec={rec} tone={REC_TONES[i % REC_TONES.length]} />
           ))}
-      </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -662,10 +711,12 @@ function ActivitySection({ state, loading }: { state: LoadState<ActivityItem[]>;
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [deals, setDeals] = useState<LoadState<Deal[]>>(initialDeals);
-  const [bundles, setBundles] = useState<LoadState<BundleDeal[]>>(initialBundles);
+  const [spotlight, setSpotlight] = useState<LoadState<SpotlightData>>(initialSpotlight);
+  const [spotlightShuffling, setSpotlightShuffling] = useState(false);
   const [activity, setActivity] = useState<LoadState<ActivityItem[]>>(initialActivity);
+  const [recommendations, setRecommendations] = useState<LoadState<Recommendation[]>>(initialRecommendations);
   const [currency] = useState(() => getPreferredCurrency());
-  const gameContentLoading = deals.loading || bundles.loading;
+  const gameContentLoading = deals.loading || spotlight.loading;
 
   useEffect(() => {
     let alive = true;
@@ -699,21 +750,30 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-
-    fetch(`/api/dashboard/bundles?${new URLSearchParams({ limit: "8", currency })}`, { signal: controller.signal })
-      .then(async (response) => {
-        const payload = await response.json() as { bundles?: BundleDeal[]; error?: string };
-        if (!response.ok) throw new Error(payload.error ?? "Unable to load bundles");
-        setBundles({ data: payload.bundles ?? [], loading: false, error: payload.error ?? null });
+    fetch("/api/dashboard/spotlight", { signal: controller.signal })
+      .then(async (res) => {
+        const payload = await res.json() as { spotlight?: SpotlightGame | null; backlog_count?: number; error?: string };
+        if (!res.ok) throw new Error(payload.error ?? "Unable to load spotlight");
+        setSpotlight({ data: { spotlight: payload.spotlight ?? null, backlog_count: payload.backlog_count ?? 0 }, loading: false, error: null });
       })
       .catch((error: Error) => {
         if (error.name !== "AbortError") {
-          setBundles({ data: [], loading: false, error: error.message });
+          setSpotlight({ data: { spotlight: null, backlog_count: 0 }, loading: false, error: error.message });
         }
       });
-
     return () => controller.abort();
-  }, [currency]);
+  }, []);
+
+  const handlePickAnother = async (excludeId: number) => {
+    setSpotlightShuffling(true);
+    try {
+      const res = await fetch(`/api/dashboard/spotlight?exclude=${excludeId}`);
+      const payload = await res.json() as { spotlight?: SpotlightGame | null; backlog_count?: number };
+      setSpotlight({ data: { spotlight: payload.spotlight ?? null, backlog_count: payload.backlog_count ?? 0 }, loading: false, error: null });
+    } finally {
+      setSpotlightShuffling(false);
+    }
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -730,6 +790,22 @@ export default function DashboardPage() {
         }
       });
 
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/games/recommendations/", { signal: controller.signal })
+      .then(async (response) => {
+        const payload = await response.json() as { recommendations?: Recommendation[]; error?: string };
+        if (!response.ok) throw new Error(payload.error ?? "Unable to load recommendations");
+        setRecommendations({ data: payload.recommendations ?? [], loading: false, error: null });
+      })
+      .catch((error: Error) => {
+        if (error.name !== "AbortError") {
+          setRecommendations({ data: [], loading: false, error: error.message });
+        }
+      });
     return () => controller.abort();
   }, []);
 
@@ -756,10 +832,10 @@ export default function DashboardPage() {
         <div className="flex min-h-0 flex-1 flex-col gap-4">
           <DealsSection state={deals} />
           <div className="grid min-h-[240px] flex-1 grid-cols-1 xl:grid-cols-[minmax(0,3fr)_minmax(340px,1.35fr)] gap-5 items-stretch">
-            <RecommendationPlaceholder loading={gameContentLoading} />
+            <RecommendationSection state={recommendations} />
             <ActivitySection state={activity} loading={gameContentLoading} />
           </div>
-          <BundlesSection state={bundles} />
+          <BacklogSpotlight state={spotlight} onPickAnother={handlePickAnother} shuffling={spotlightShuffling} />
         </div>
       </div>
     </div>
