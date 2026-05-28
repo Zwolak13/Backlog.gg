@@ -1,3 +1,6 @@
+import random
+
+from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,7 +10,7 @@ from users.friendships import get_friend_ids
 from .bundles import DEFAULT_BUNDLE_LIMIT, get_dashboard_bundles
 from .deals import DEFAULT_LIMIT, get_dashboard_deals, get_game_deal
 from .models import UserGame
-from .steam import normalize_currency
+from .steam import normalize_currency, portrait_image
 
 
 def _safe_limit(raw_value, default=20, maximum=50):
@@ -16,6 +19,48 @@ def _safe_limit(raw_value, default=20, maximum=50):
     except (TypeError, ValueError):
         value = default
     return min(max(value, 1), maximum)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def spotlight_view(request):
+    exclude_ids = []
+    for raw in request.GET.get("exclude", "").split(","):
+        try:
+            exclude_ids.append(int(raw.strip()))
+        except ValueError:
+            pass
+
+    total_backlog = UserGame.objects.filter(user=request.user, status="backlog").count()
+
+    qs = (
+        UserGame.objects
+        .filter(user=request.user, status="backlog")
+        .exclude(game_id__in=exclude_ids)
+        .select_related("game")
+    )
+
+    ug = qs.order_by("?").first()
+    if not ug:
+        # Excluded all — pick any
+        ug = UserGame.objects.filter(user=request.user, status="backlog").select_related("game").order_by("?").first()
+
+    if not ug:
+        return Response({"spotlight": None, "backlog_count": 0})
+
+    days = (timezone.now() - ug.created_at).days
+    return Response({
+        "spotlight": {
+            "game_id": ug.game.id,
+            "name": ug.game.name,
+            "background_image": ug.game.background_image,
+            "portrait_image": portrait_image(ug.game.id),
+            "metacritic": ug.game.metacritic,
+            "days_in_backlog": days,
+            "added_at": ug.created_at.isoformat(),
+        },
+        "backlog_count": total_backlog,
+    })
 
 
 @api_view(["GET"])

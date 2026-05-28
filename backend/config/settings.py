@@ -126,3 +126,5 @@ STATIC_URL = 'static/'
 
 GG_DEALS_API_KEY = os.getenv("GG_DEALS_API_KEY", "")
 GG_DEALS_REGION = os.getenv("GG_DEALS_REGION", "us")
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")

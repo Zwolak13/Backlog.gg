@@ -9,7 +9,7 @@ import {
   Gamepad2, CheckCircle2, Heart,
   ExternalLink, ChevronLeft, Plus, Star,
   ChevronDown, Trash2, RefreshCw, BookMarked,
-  Globe, Lock, Tag,
+  Globe, Lock,
 } from "lucide-react";
 import { ratingColor } from "@/lib/utils";
 import { getPreferredCurrency } from "@/lib/preferences";
@@ -488,6 +488,44 @@ export default function GameDetailsPage() {
               </div>
             )}
 
+            {gameDeal && (gameDeal.official_price || gameDeal.keyshop_price) && (
+              <div className="mb-10">
+                <h2 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4" style={{ fontFamily: "var(--font-syne)" }}>Prices on GG.deals</h2>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {gameDeal.official_price && gameDeal.official_url && (
+                    <a
+                      href={gameDeal.official_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-150 hover:brightness-110"
+                      style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)" }}
+                    >
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: "rgba(52,211,153,0.6)" }}>Official stores</p>
+                        <span className="text-lg font-black tabular-nums" style={{ color: "#34d399" }}>{gameDeal.official_price}</span>
+                      </div>
+                      <ExternalLink size={13} style={{ color: "rgba(52,211,153,0.5)" }} />
+                    </a>
+                  )}
+                  {gameDeal.keyshop_price && gameDeal.keyshop_url && gameDeal.keyshop_price !== gameDeal.official_price && (
+                    <a
+                      href={gameDeal.keyshop_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-150 hover:brightness-110"
+                      style={{ background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)" }}
+                    >
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: "rgba(167,139,250,0.6)" }}>Key shops</p>
+                        <span className="text-lg font-black tabular-nums" style={{ color: "#a78bfa" }}>{gameDeal.keyshop_price}</span>
+                      </div>
+                      <ExternalLink size={13} style={{ color: "rgba(167,139,250,0.5)" }} />
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
             {game.screenshots?.length > 0 && (
               <div className="mb-10">
                 <h2 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4" style={{ fontFamily: "var(--font-syne)" }}>Screenshots</h2>
@@ -759,52 +797,6 @@ export default function GameDetailsPage() {
                 )}
               </div>
             </div>
-
-          {gameDeal && (gameDeal.official_price || gameDeal.keyshop_price) && (
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{ background: "rgb(13,14,22)", border: "1px solid rgba(52,211,153,0.2)" }}
-            >
-              <div className="flex items-center gap-2.5 px-5 py-3 border-b" style={{ borderColor: "rgba(52,211,153,0.12)" }}>
-                <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.2)" }}>
-                  <Tag size={12} style={{ color: "#34d399" }} />
-                </div>
-                <span className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.7)", fontFamily: "var(--font-syne)" }}>Prices on GG.deals</span>
-              </div>
-              <div className="px-4 py-4 flex flex-col gap-2.5">
-                {gameDeal.official_price && gameDeal.official_url && (
-                  <a
-                    href={gameDeal.official_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-150 hover:brightness-110"
-                    style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)" }}
-                  >
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: "rgba(52,211,153,0.6)" }}>Official stores</p>
-                      <span className="text-lg font-black tabular-nums" style={{ color: "#34d399" }}>{gameDeal.official_price}</span>
-                    </div>
-                    <ExternalLink size={13} style={{ color: "rgba(52,211,153,0.5)" }} />
-                  </a>
-                )}
-                {gameDeal.keyshop_price && gameDeal.keyshop_url && gameDeal.keyshop_price !== gameDeal.official_price && (
-                  <a
-                    href={gameDeal.keyshop_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-150 hover:brightness-110"
-                    style={{ background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)" }}
-                  >
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: "rgba(167,139,250,0.6)" }}>Key shops</p>
-                      <span className="text-lg font-black tabular-nums" style={{ color: "#a78bfa" }}>{gameDeal.keyshop_price}</span>
-                    </div>
-                    <ExternalLink size={13} style={{ color: "rgba(167,139,250,0.5)" }} />
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
 
           </div>
 
