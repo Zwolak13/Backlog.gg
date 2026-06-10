@@ -295,6 +295,9 @@ export default function GameDetailsPage() {
         website: gameData.website,
       } : null);
       setLoading(false);
+    }).catch(() => {
+      setGame(null);
+      setLoading(false);
     });
   }, [appid]);
 
@@ -414,8 +417,14 @@ export default function GameDetailsPage() {
   return (
     <div className="relative min-h-screen text-white">
       <div className="relative w-full h-64 md:h-[420px] overflow-hidden">
-        <Image src={game.background_image} alt="" fill className="object-cover scale-110 blur-md opacity-25" aria-hidden />
-        <Image src={game.background_image} alt={game.name} fill className="object-cover object-center" priority />
+        {game.background_image ? (
+          <>
+            <Image src={game.background_image} alt="" fill className="object-cover scale-110 blur-md opacity-25" aria-hidden />
+            <Image src={game.background_image} alt={game.name} fill className="object-cover object-center" priority />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--backlog-purple)]/30 to-[rgb(18,19,24)]" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-[rgb(18,19,24)] via-[rgb(18,19,24)]/30 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-[rgb(18,19,24)]/60 to-transparent" />
         <button
