@@ -12,9 +12,13 @@ export function usePresence(): Set<string> {
     wsRef.current = ws;
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.online) {
-        setOnlineUsers(new Set(data.online));
+      try {
+        const data = JSON.parse(event.data);
+        if (data.online) {
+          setOnlineUsers(new Set(data.online));
+        }
+      } catch {
+        // ignore malformed presence frames
       }
     };
 

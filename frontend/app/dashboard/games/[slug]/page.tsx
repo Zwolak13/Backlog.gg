@@ -351,18 +351,23 @@ export default function GameDetailsPage() {
       game_image: game.background_image,
       game_metacritic: game.metacritic,
     };
-    const res  = await fetch("/api/games/library", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    const data = await res.json() as LibraryEntryResponse;
-    if (data.error) { toastError(data.error); }
-    else {
-      setEntry(data);
-      setStatus(data.status);
-      setIsFavourite(data.is_favourite);
-      setRating(data.rating);
-      toastSuccess(entry ? "Library updated!" : `Added to ${status}!`);
-      if (appid) fetchReviews(appid);
+    try {
+      const res  = await fetch("/api/games/library", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await res.json() as LibraryEntryResponse;
+      if (data.error) { toastError(data.error); }
+      else {
+        setEntry(data);
+        setStatus(data.status);
+        setIsFavourite(data.is_favourite);
+        setRating(data.rating);
+        toastSuccess(entry ? "Library updated!" : `Added to ${status}!`);
+        if (appid) fetchReviews(appid);
+      }
+    } catch {
+      toastError("Failed to save. Please try again.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleRemove = async () => {
@@ -385,14 +390,19 @@ export default function GameDetailsPage() {
     if (!entry) return;
     const next = !isFavourite;
     setIsFavourite(next);
-    const res  = await fetch(`/api/games/library/${entry.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ is_favourite: next }),
-    });
-    const data = await res.json();
-    if (data.error) { setIsFavourite(!next); toastError(data.error); }
-    else setEntry(data);
+    try {
+      const res  = await fetch(`/api/games/library/${entry.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_favourite: next }),
+      });
+      const data = await res.json();
+      if (data.error) { setIsFavourite(!next); toastError(data.error); }
+      else setEntry(data);
+    } catch {
+      setIsFavourite(!next);
+      toastError("Failed to update favourite.");
+    }
   };
 
   if (loading) return <Skeleton />;

@@ -92,7 +92,7 @@ def _base_activity(ug):
     }
 
 
-def _activity_events(ug):
+def _activity_events(ug, can_see_review=True):
     base = _base_activity(ug)
     events = [
         {
@@ -122,7 +122,7 @@ def _activity_events(ug):
             "extra": {"status": ug.status},
         })
 
-    if ug.review_text:
+    if ug.review_text and can_see_review:
         events.append({
             **base,
             "id": f"review-{ug.id}",
@@ -158,6 +158,13 @@ def public_user_activity_view(request, username):
     User = get_user_model()
     user = get_object_or_404(User, username=username)
     limit = _safe_limit(request.GET.get("limit"), default=30, maximum=100)
+
+    # Friends-only reviews must stay hidden from non-friends (and anonymous visitors).
+    viewer = request.user
+    can_see_private = viewer.is_authenticated and (
+        viewer.id == user.id or user.id in get_friend_ids(viewer)
+    )
+
     rows = (
         UserGame.objects
         .filter(user=user)
@@ -166,7 +173,8 @@ def public_user_activity_view(request, username):
     )
     events = []
     for ug in rows:
-        events.extend(_activity_events(ug))
+        can_see_review = ug.review_visibility == "global" or can_see_private
+        events.extend(_activity_events(ug, can_see_review=can_see_review))
     events.sort(key=lambda e: e["timestamp"], reverse=True)
     return Response({"activity": events[:limit]})
 
