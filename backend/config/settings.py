@@ -8,11 +8,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 
-SECRET_KEY = 'django-insecure-xe95a2*5=zj+jixo$m=+u^sd_a4qa0749c0b3e%1i(e7znv*&s'
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-xe95a2*5=zj+jixo$m=+u^sd_a4qa0749c0b3e%1i(e7znv*&s",
+)
 
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes")
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if h.strip()
+]
 
 INSTALLED_APPS = [
     'daphne',
@@ -47,13 +54,15 @@ MIDDLEWARE = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+_frontend_origins = [
+    o.strip()
+    for o in os.getenv("FRONTEND_ORIGINS", "http://localhost:3000").split(",")
+    if o.strip()
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-]
+CORS_ALLOWED_ORIGINS = _frontend_origins
+
+CSRF_TRUSTED_ORIGINS = _frontend_origins
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
