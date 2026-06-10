@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Bot, ExternalLink, Gamepad2, Menu, Plus, Send, Sparkles, Trash2, X } from "lucide-react";
+import { toastError } from "@/lib/toast";
 
 interface ChatGame {
   name: string;
@@ -88,7 +89,8 @@ export default function AIChatPage() {
   useEffect(() => {
     fetch("/api/games/recommendations/sessions/")
       .then((r) => r.json())
-      .then((d: { sessions?: ChatSession[] }) => setSessions(d.sessions ?? []));
+      .then((d: { sessions?: ChatSession[] }) => setSessions(d.sessions ?? []))
+      .catch(() => toastError("Failed to load chat sessions"));
   }, []);
 
   useEffect(() => {
@@ -102,9 +104,14 @@ export default function AIChatPage() {
   const loadSession = async (id: number) => {
     setActiveSessionId(id);
     setMessages([]);
-    const res = await fetch(`/api/games/recommendations/sessions/${id}/`);
-    const data = (await res.json()) as { messages?: Message[] };
-    setMessages(data.messages ?? []);
+    try {
+      const res = await fetch(`/api/games/recommendations/sessions/${id}/`);
+      if (!res.ok) { toastError("Failed to load session"); return; }
+      const data = (await res.json()) as { messages?: Message[] };
+      setMessages(data.messages ?? []);
+    } catch {
+      toastError("Failed to load session");
+    }
   };
 
   const newChat = () => {
@@ -115,9 +122,14 @@ export default function AIChatPage() {
 
   const deleteSession = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    await fetch(`/api/games/recommendations/sessions/${id}/`, { method: "DELETE" });
-    setSessions((prev) => prev.filter((s) => s.id !== id));
-    if (activeSessionId === id) newChat();
+    try {
+      const res = await fetch(`/api/games/recommendations/sessions/${id}/`, { method: "DELETE" });
+      if (!res.ok) { toastError("Failed to delete session"); return; }
+      setSessions((prev) => prev.filter((s) => s.id !== id));
+      if (activeSessionId === id) newChat();
+    } catch {
+      toastError("Failed to delete session");
+    }
   };
 
   const sendMessage = async () => {

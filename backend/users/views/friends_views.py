@@ -46,10 +46,12 @@ def add_friend_view(request):
     if target == request.user:
         return Response({"error": "Cannot add yourself"}, status=400)
 
-    _, created = Friendship.objects.get_or_create(from_user=request.user, to_user=target)
-    if not created:
+    if Friendship.objects.filter(
+        Q(from_user=request.user, to_user=target) | Q(from_user=target, to_user=request.user)
+    ).exists():
         return Response({"error": "Already friends"}, status=400)
 
+    Friendship.objects.create(from_user=request.user, to_user=target)
     return Response({"message": f"Added {username}"}, status=201)
 
 

@@ -5,6 +5,7 @@ import { useLibrary, LibraryGame } from "@/hooks/useLibrary";
 import Link from "next/link";
 import { Star, Trash2 } from "lucide-react";
 import { ratingColor } from "@/lib/utils";
+import { toastSuccess, toastError } from "@/lib/toast";
 
 const STATUSES = ["all", "playing", "completed", "backlog", "wishlist"] as const;
 
@@ -13,17 +14,26 @@ export default function ProfileLibrary() {
   const { games, loading } = useLibrary(filter === "all" ? undefined : filter);
 
   const handleRemove = async (id: number) => {
-    await fetch(`/api/games/library/${id}`, { method: "DELETE" });
-    window.location.reload();
+    const res = await fetch(`/api/games/library/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      toastSuccess("Removed from library");
+      window.location.reload();
+    } else {
+      toastError("Failed to remove game");
+    }
   };
 
   const handleToggleFavourite = async (ug: LibraryGame) => {
-    await fetch(`/api/games/library/${ug.id}`, {
+    const res = await fetch(`/api/games/library/${ug.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ is_favourite: !ug.is_favourite }),
     });
-    window.location.reload();
+    if (res.ok) {
+      window.location.reload();
+    } else {
+      toastError("Failed to update favourite");
+    }
   };
 
   return (

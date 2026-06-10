@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import AddFriendModal from "./AddFriendModal";
 import { usePresence } from "@/hooks/usePresence";
+import { toastError } from "@/lib/toast";
 
 interface Friend {
   username: string;
@@ -20,7 +21,8 @@ export default function FriendsPanel() {
   const loadFriends = () => {
     fetch("/api/user/friends")
       .then((r) => r.json())
-      .then((d) => setFriends(d.friends ?? []));
+      .then((d) => setFriends(d.friends ?? []))
+      .catch(() => toastError("Failed to load friends"));
   };
 
   useEffect(() => {

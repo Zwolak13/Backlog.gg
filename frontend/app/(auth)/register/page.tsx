@@ -31,7 +31,11 @@ export default function RegisterPage() {
     setPasswordError("");
 
     try {
-      const data: ApiResponse<User> = await register(form);
+      const data: ApiResponse<User> = await register({
+        ...form,
+        username: form.username.trim(),
+        email: form.email.trim(),
+      });
 
       if (data.error) {
         toastError(data.error);

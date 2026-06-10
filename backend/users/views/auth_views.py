@@ -70,6 +70,7 @@ def me_view(request):
 
 
 @api_view(["POST"])
+@csrf_protect
 def logout_view(request):
     logout(request)
     return Response({"message": "Logged out"})

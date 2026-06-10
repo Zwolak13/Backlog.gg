@@ -311,7 +311,9 @@ export default function GamesPage() {
   }, [safeMode]);
 
   useEffect(() => {
-    fetchBrowse(safeMode, currency).then((d) => { if (d?.mode === "browse") setSections(d.sections); setBrowseLoading(false); });
+    fetchBrowse(safeMode, currency)
+      .then((d) => { if (d?.mode === "browse") setSections(d.sections); setBrowseLoading(false); })
+      .catch(() => setBrowseLoading(false));
   }, [safeMode, currency]);
 
   const loadSearch = useCallback(async (q: string, p: number, replace: boolean) => {

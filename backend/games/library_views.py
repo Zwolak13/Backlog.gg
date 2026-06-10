@@ -43,6 +43,24 @@ def library_view(request):
     if not game_id or not status:
         return Response({"error": "game_id and status are required"}, status=400)
 
+    valid_statuses = {c[0] for c in UserGame.STATUS_CHOICES}
+    if status not in valid_statuses:
+        return Response({"error": f"status must be one of: {', '.join(valid_statuses)}"}, status=400)
+
+    rating = request.data.get("rating")
+    if rating is not None:
+        try:
+            rating = int(rating)
+        except (TypeError, ValueError):
+            return Response({"error": "rating must be an integer"}, status=400)
+        if not (1 <= rating <= 10):
+            return Response({"error": "rating must be between 1 and 10"}, status=400)
+
+    visibility = request.data.get("review_visibility", "global")
+    valid_visibilities = {c[0] for c in UserGame.VISIBILITY_CHOICES}
+    if visibility not in valid_visibilities:
+        return Response({"error": f"review_visibility must be one of: {', '.join(valid_visibilities)}"}, status=400)
+
     game, _ = Game.objects.get_or_create(
         id=game_id,
         defaults={
@@ -58,11 +76,11 @@ def library_view(request):
         game=game,
         defaults={
             "status": status,
-            "rating": request.data.get("rating"),
+            "rating": rating,
             "is_favourite": request.data.get("is_favourite", False),
             "hours_played": request.data.get("hours_played"),
             "review_text": request.data.get("review_text"),
-            "review_visibility": request.data.get("review_visibility", "global"),
+            "review_visibility": visibility,
         },
     )
     return Response(serialize_user_game(ug), status=201 if created else 200)
@@ -77,9 +95,29 @@ def library_item_view(request, pk):
         ug.delete()
         return Response({"message": "Removed from library"})
 
+    patch = dict(request.data)
+
+    if "status" in patch:
+        valid_statuses = {c[0] for c in UserGame.STATUS_CHOICES}
+        if patch["status"] not in valid_statuses:
+            return Response({"error": f"status must be one of: {', '.join(valid_statuses)}"}, status=400)
+
+    if "rating" in patch and patch["rating"] is not None:
+        try:
+            patch["rating"] = int(patch["rating"])
+        except (TypeError, ValueError):
+            return Response({"error": "rating must be an integer"}, status=400)
+        if not (1 <= patch["rating"] <= 10):
+            return Response({"error": "rating must be between 1 and 10"}, status=400)
+
+    if "review_visibility" in patch:
+        valid_visibilities = {c[0] for c in UserGame.VISIBILITY_CHOICES}
+        if patch["review_visibility"] not in valid_visibilities:
+            return Response({"error": f"review_visibility must be one of: {', '.join(valid_visibilities)}"}, status=400)
+
     for field in ("status", "rating", "is_favourite", "hours_played", "review_text", "review_visibility"):
-        if field in request.data:
-            setattr(ug, field, request.data[field])
+        if field in patch:
+            setattr(ug, field, patch[field])
     ug.save()
     return Response(serialize_user_game(ug))
 

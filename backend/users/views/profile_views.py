@@ -10,26 +10,6 @@ def delete_account(request):
     return Response({"message": "Account deleted"})
 
 
-from django.contrib.auth import update_session_auth_hash
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def change_password(request):
-    user = request.user
-    old_password = request.data.get("old_password")
-    new_password = request.data.get("new_password")
-
-    if not user.check_password(old_password):
-        return Response({"error": "Incorrect current password"}, status=400)
-
-    user.set_password(new_password)
-    user.save()
-
-    update_session_auth_hash(request, user)
-
-    return Response({"message": "Password updated"})
-
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_profile(request):
@@ -60,6 +40,10 @@ def update_profile(request):
         user.avatar_url = avatar_url
 
     if username is not None:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if User.objects.filter(username=username).exclude(id=user.id).exists():
+            return Response({"error": "Username already taken"}, status=400)
         user.username = username
 
     user.save()

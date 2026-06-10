@@ -64,6 +64,8 @@ export default function SettingsPage() {
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
     fetch("/api/user/me")
@@ -72,18 +74,26 @@ export default function SettingsPage() {
         setUsername(d.username ?? "");
         setBio(d.bio ?? "");
         setAvatarUrl(d.avatar_url ?? "");
-      });
+      })
+      .catch(() => toastError("Failed to load profile"));
   }, []);
 
   const handleSaveProfile = async () => {
-    const res = await fetch("/api/user/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, bio, avatar_url: avatarUrl }),
-    });
-    const data = await res.json();
-    if (data.error) toastError(data.error);
-    else toastSuccess("Profile updated!");
+    setSavingProfile(true);
+    try {
+      const res = await fetch("/api/user/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, bio, avatar_url: avatarUrl }),
+      });
+      const data = await res.json();
+      if (data.error) toastError(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
+      else toastSuccess("Profile updated!");
+    } catch {
+      toastError("Failed to save profile");
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   const handleChangePassword = async () => {
@@ -91,23 +101,36 @@ export default function SettingsPage() {
       toastError("New passwords do not match.");
       return;
     }
-    const res = await fetch("/api/user/change-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ old_password: oldPass, new_password: newPass }),
-    });
-    const data = await res.json();
-    if (data.error) toastError(data.error);
-    else {
-      toastSuccess("Password changed!");
-      setOldPass(""); setNewPass(""); setConfirmPass("");
+    setSavingPassword(true);
+    try {
+      const res = await fetch("/api/user/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ old_password: oldPass, new_password: newPass }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        const msg = Array.isArray(data.error) ? data.error.join(" ") : typeof data.error === "string" ? data.error : "Failed to change password";
+        toastError(msg);
+      } else {
+        toastSuccess("Password changed!");
+        setOldPass(""); setNewPass(""); setConfirmPass("");
+      }
+    } catch {
+      toastError("Failed to change password");
+    } finally {
+      setSavingPassword(false);
     }
   };
 
   const handleDelete = async () => {
     if (!confirm("Are you sure? This permanently deletes your account.")) return;
-    await fetch("/api/user/delete", { method: "DELETE" });
-    router.push("/login");
+    try {
+      await fetch("/api/user/delete", { method: "DELETE" });
+      router.push("/login");
+    } catch {
+      toastError("Failed to delete account");
+    }
   };
 
   return (
@@ -213,10 +236,11 @@ export default function SettingsPage() {
 
               <Button
                 onClick={handleSaveProfile}
+                disabled={savingProfile}
                 className="text-white px-6 font-semibold"
                 style={{ background: "linear-gradient(135deg, var(--backlog-purple), var(--backlog-indigo))", boxShadow: "0 2px 16px rgba(135,86,241,0.3)" }}
               >
-                Save Changes
+                {savingProfile ? "Saving…" : "Save Changes"}
               </Button>
             </div>
           )}
@@ -262,10 +286,11 @@ export default function SettingsPage() {
 
                 <Button
                   onClick={handleChangePassword}
+                  disabled={savingPassword}
                   className="mt-5 text-white px-6 font-semibold"
                   style={{ background: "linear-gradient(135deg, var(--backlog-purple), var(--backlog-indigo))", boxShadow: "0 2px 16px rgba(135,86,241,0.3)" }}
                 >
-                  Update Password
+                  {savingPassword ? "Updating…" : "Update Password"}
                 </Button>
               </div>
             </div>
