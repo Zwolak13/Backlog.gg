@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { login, LoginData, ApiResponse, User } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import LOGO from "../../../public/backlog-logo.png";
 import Image from "next/image";
 import { toastSuccess, toastError } from "@/lib/toast";
 import Link from "next/link";
@@ -44,10 +43,12 @@ export default function LoginPage() {
 
       <div className="relative flex flex-col items-center text-center">
         <Image
-          src={LOGO}
+          src="/backlog-logo-minimal-transparent.png"
           alt="Backlog.gg Logo"
-          width={180}
-          className="mx-auto mb-4 drop-shadow-[0_0_25px_rgba(135,86,241,0.6)]"
+          width={260}
+          height={130}
+          priority
+          className="mx-auto mb-4 h-auto w-[230px] sm:w-[260px] drop-shadow-[0_0_25px_rgba(135,86,241,0.45)]"
         />
 
         <p className="text-white/60 mb-8 tracking-wide text-sm">
@@ -74,9 +75,6 @@ export default function LoginPage() {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               className="h-12 mt-1 bg-white/10 border-white/20 focus-visible:ring-[var(--backlog-purple)] px-4 text-base"
             />
-            <p className="text-right text-xs text-[var(--backlog-pink)] mt-1 cursor-pointer hover:underline">
-              Forgot?
-            </p>
           </div>
 
           <Button

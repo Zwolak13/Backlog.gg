@@ -1,7 +1,7 @@
 "use client";
 
 import { Users, UserPlus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import AddFriendModal from "./AddFriendModal";
 import { usePresence } from "@/hooks/usePresence";
@@ -13,21 +13,38 @@ interface Friend {
   bio: string | null;
 }
 
-export default function FriendsPanel() {
+export default function FriendsPanel({
+  isOwnProfile,
+  username,
+}: {
+  isOwnProfile: boolean;
+  username?: string;
+}) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const onlineUsers = usePresence();
 
-  const loadFriends = () => {
-    fetch("/api/user/friends")
+  const loadFriends = useCallback(() => {
+    const url = isOwnProfile
+      ? "/api/user/friends"
+      : username
+        ? `/api/user/profile/${encodeURIComponent(username)}/friends`
+        : null;
+
+    if (!url) return;
+
+    fetch(url)
       .then((r) => r.json())
       .then((d) => setFriends(d.friends ?? []))
-      .catch(() => toastError("Failed to load friends"));
-  };
+      .catch(() => {
+        setFriends([]);
+        if (isOwnProfile) toastError("Failed to load friends");
+      });
+  }, [isOwnProfile, username]);
 
   useEffect(() => {
     loadFriends();
-  }, []);
+  }, [loadFriends]);
 
   return (
     <>
@@ -58,14 +75,16 @@ export default function FriendsPanel() {
               </span>
             )}
           </div>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:brightness-125"
-            style={{ background: "rgba(135,86,241,0.12)", border: "1px solid rgba(135,86,241,0.22)", color: "rgba(167,139,250,0.8)" }}
-            title="Add friend"
-          >
-            <UserPlus size={13} />
-          </button>
+          {isOwnProfile && (
+            <button
+              onClick={() => setModalOpen(true)}
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:brightness-125"
+              style={{ background: "rgba(135,86,241,0.12)", border: "1px solid rgba(135,86,241,0.22)", color: "rgba(167,139,250,0.8)" }}
+              title="Add friend"
+            >
+              <UserPlus size={13} />
+            </button>
+          )}
         </div>
 
         <div className="p-2.5 min-h-0 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(135,86,241,0.25) transparent" }}>
@@ -78,7 +97,7 @@ export default function FriendsPanel() {
                 <Users size={22} style={{ color: "rgba(135,86,241,0.4)" }} />
               </div>
               <p className="text-white/40 text-sm font-semibold">No friends yet</p>
-              <p className="text-white/20 text-xs">Add people to see them here.</p>
+              {isOwnProfile && <p className="text-white/20 text-xs">Add people to see them here.</p>}
             </div>
           ) : (
             <div className="flex flex-col gap-1">
@@ -118,11 +137,13 @@ export default function FriendsPanel() {
         </div>
       </div>
 
-      <AddFriendModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onFriendsChanged={loadFriends}
-      />
+      {isOwnProfile && (
+        <AddFriendModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onFriendsChanged={loadFriends}
+        />
+      )}
     </>
   );
 }

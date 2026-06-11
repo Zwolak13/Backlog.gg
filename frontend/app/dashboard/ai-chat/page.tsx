@@ -359,7 +359,7 @@ export default function AIChatPage() {
                 What should you play next?
               </h2>
               <p className="text-sm max-w-sm mb-8" style={{ color: "rgba(255,255,255,0.28)" }}>
-                Ask me anything about games. I know your library and I'll find your next obsession.
+                Ask me anything about games. I know your library and I&apos;ll find your next obsession.
               </p>
               <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
                 {SUGGESTIONS.map((s) => (

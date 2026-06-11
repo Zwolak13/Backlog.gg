@@ -10,8 +10,8 @@ const STATUS_CONFIG = [
   { key: "wishlist",  label: "Wishlist",  color: "#a78bfa", bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.18)" },
 ] as const;
 
-export default function ProfileStats() {
-  const { stats } = useLibraryStats();
+export default function ProfileStats({ username }: { username?: string }) {
+  const { stats } = useLibraryStats(username);
   const total = stats?.total ?? 0;
 
   return (

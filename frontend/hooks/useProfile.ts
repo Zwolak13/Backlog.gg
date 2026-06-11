@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 export interface Profile {
   id: number;
   username: string;
-  email: string;
+  email?: string;
   bio: string | null;
   avatar_url: string | null;
   created_at: string;
@@ -30,16 +30,28 @@ function normalizeProfile(data: ProfilePayload): Profile | null {
   return data as Profile;
 }
 
-export function useProfile() {
+export function useProfile(username?: string) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true);
+      setNotFound(false);
+
       try {
-        const res = await fetch("/api/user/me", { method: "GET" });
+        const url = username
+          ? `/api/user/profile/${encodeURIComponent(username)}`
+          : "/api/user/me";
+        const res = await fetch(url, { method: "GET" });
         const data = await readJson<ProfilePayload>(res, { error: "Unable to load profile" });
-        setProfile(res.ok ? normalizeProfile(data) : null);
+        if (res.ok) {
+          setProfile(normalizeProfile(data));
+        } else {
+          setProfile(null);
+          setNotFound(res.status === 404);
+        }
       } catch {
         setProfile(null);
       } finally {
@@ -48,7 +60,7 @@ export function useProfile() {
     };
 
     load();
-  }, []);
+  }, [username]);
 
-  return { profile, loading };
+  return { profile, loading, notFound };
 }

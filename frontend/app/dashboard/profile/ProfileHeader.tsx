@@ -1,24 +1,142 @@
 "use client";
 
-import { useProfile } from "@/hooks/useProfile";
-import { useLibraryStats } from "@/hooks/useLibrary";
-import { Settings, Calendar } from "lucide-react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ArrowLeft, Calendar, Clock, Settings, UserMinus, UserPlus } from "lucide-react";
+import { useLibraryStats } from "@/hooks/useLibrary";
+import { usePresence } from "@/hooks/usePresence";
+import { toastError, toastSuccess } from "@/lib/toast";
+import type { Profile } from "@/hooks/useProfile";
 
 const TABS = ["Games", "Activity", "Library"] as const;
 
-interface Props {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+interface Friend {
+  username: string;
 }
 
-export default function ProfileHeader({ activeTab, onTabChange }: Props) {
-  const { profile } = useProfile();
-  const { stats } = useLibraryStats();
+interface Props {
+  activeTab: string;
+  isOwnProfile: boolean;
+  onTabChange: (tab: string) => void;
+  profile: Profile | null;
+  profileLoading?: boolean;
+  username?: string;
+}
+
+function normalizeUsername(value: string) {
+  return value.trim().toLowerCase();
+}
+
+export default function ProfileHeader({
+  activeTab,
+  isOwnProfile,
+  onTabChange,
+  profile,
+  profileLoading = false,
+  username,
+}: Props) {
+  const { stats } = useLibraryStats(username);
+  const onlineUsers = usePresence();
+  const targetUsername = profile?.username ?? username;
+  const avatarSeed = targetUsername ?? "profile";
+  const isOnline = isOwnProfile || (targetUsername ? onlineUsers.has(targetUsername) : false);
+  const [isFriend, setIsFriend] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
+  const [removingFriend, setRemovingFriend] = useState(false);
+  const [sendingRequest, setSendingRequest] = useState(false);
 
   const joinDate = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long" })
     : null;
+
+  useEffect(() => {
+    if (isOwnProfile || !targetUsername) return;
+
+    let active = true;
+    const normalizedTarget = normalizeUsername(targetUsername);
+
+    setIsFriend(false);
+    setRequestSent(false);
+
+    fetch("/api/user/friends")
+      .then((response) => response.json())
+      .then((data) => {
+        if (!active) return;
+        setIsFriend(
+          (data.friends ?? []).some(
+            (friend: Friend) => normalizeUsername(friend.username) === normalizedTarget,
+          ),
+        );
+      })
+      .catch(() => {});
+
+    fetch("/api/user/friends/requests")
+      .then((response) => response.json())
+      .then((data) => {
+        if (!active) return;
+        setRequestSent(
+          (data.outgoing ?? []).some(
+            (request: { to_user?: { username?: string } }) =>
+              request.to_user?.username &&
+              normalizeUsername(request.to_user.username) === normalizedTarget,
+          ),
+        );
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [isOwnProfile, targetUsername]);
+
+  const handleSendRequest = async () => {
+    if (!targetUsername) return;
+
+    setSendingRequest(true);
+    try {
+      const response = await fetch("/api/user/friends/request/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: targetUsername }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        toastError(data.error ?? "Failed to send request");
+        return;
+      }
+
+      setRequestSent(true);
+      toastSuccess(`Friend request sent to ${targetUsername}`);
+    } catch {
+      toastError("Failed to send request");
+    } finally {
+      setSendingRequest(false);
+    }
+  };
+
+  const handleRemoveFriend = async () => {
+    if (!targetUsername) return;
+
+    setRemovingFriend(true);
+    try {
+      const response = await fetch(`/api/user/friends/${encodeURIComponent(targetUsername)}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        toastError("Failed to remove friend");
+        return;
+      }
+
+      setIsFriend(false);
+      toastSuccess(`Removed ${targetUsername} from friends`);
+    } catch {
+      toastError("Failed to remove friend");
+    } finally {
+      setRemovingFriend(false);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -71,19 +189,73 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
 
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0b0c18]" />
 
-        <Link
-          href="/dashboard/settings"
-          className="absolute top-4 right-5 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 hover:brightness-125"
-          style={{
-            background: "rgba(135,86,241,0.14)",
-            border: "1px solid rgba(135,86,241,0.4)",
-            color: "rgba(185,160,255,1)",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <Settings size={13} />
-          Edit Profile
-        </Link>
+        {isOwnProfile ? (
+          <Link
+            href="/dashboard/settings"
+            className="absolute top-4 right-5 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 hover:brightness-125"
+            style={{
+              background: "rgba(135,86,241,0.14)",
+              border: "1px solid rgba(135,86,241,0.4)",
+              color: "rgba(185,160,255,1)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <Settings size={13} />
+            Edit Profile
+          </Link>
+        ) : (
+          <>
+            <Link
+              href="/dashboard/profile"
+              className="absolute top-4 left-5 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 hover:brightness-125"
+              style={{
+                background: "rgba(135,86,241,0.14)",
+                border: "1px solid rgba(135,86,241,0.4)",
+                color: "rgba(185,160,255,1)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <ArrowLeft size={13} />
+              Back
+            </Link>
+
+            <div className="absolute top-4 right-5">
+              {isFriend ? (
+                <button
+                  onClick={handleRemoveFriend}
+                  disabled={removingFriend}
+                  title="Remove friend"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:brightness-125 disabled:opacity-50"
+                  style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "rgba(252,165,165,0.9)", backdropFilter: "blur(8px)" }}
+                >
+                  {removingFriend
+                    ? <div className="w-3 h-3 rounded-full border border-red-300/30 border-t-red-300/70 animate-spin" />
+                    : <UserMinus size={14} />}
+                </button>
+              ) : requestSent ? (
+                <div
+                  title="Friend request sent"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: "rgba(135,86,241,0.14)", border: "1px solid rgba(135,86,241,0.3)", color: "rgba(167,139,250,0.78)", backdropFilter: "blur(8px)" }}
+                >
+                  <Clock size={14} />
+                </div>
+              ) : (
+                <button
+                  onClick={handleSendRequest}
+                  disabled={sendingRequest || !targetUsername}
+                  title="Add friend"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:brightness-125 disabled:opacity-50"
+                  style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.28)", color: "#34d399", backdropFilter: "blur(8px)" }}
+                >
+                  {sendingRequest
+                    ? <div className="w-3 h-3 rounded-full border border-green-300/30 border-t-green-300/70 animate-spin" />
+                    : <UserPlus size={14} />}
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <div style={{ background: "#0b0c18", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
@@ -100,7 +272,7 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
                 }}
               >
                 <img
-                  src={profile?.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${profile?.username}`}
+                  src={profile?.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${avatarSeed}`}
                   alt="avatar"
                   className="block rounded-[9px] object-cover"
                   style={{ width: 86, height: 86, background: "rgb(20,22,34)" }}
@@ -108,15 +280,22 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
               </div>
               <div
                 className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap"
-                style={{
+                style={isOnline ? {
                   background: "#0a1a14",
                   border: "1px solid rgba(52,211,153,0.5)",
                   color: "#34d399",
                   boxShadow: "0 0 12px rgba(52,211,153,0.3)",
+                } : {
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.3)",
                 }}
               >
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#34d399", boxShadow: "0 0 6px #34d399" }} />
-                Online
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={isOnline ? { background: "#34d399", boxShadow: "0 0 6px #34d399" } : { background: "rgba(255,255,255,0.25)" }}
+                />
+                {isOnline ? "Online" : "Offline"}
               </div>
             </div>
 
@@ -126,7 +305,7 @@ export default function ProfileHeader({ activeTab, onTabChange }: Props) {
                   className="text-[1.65rem] font-black text-white leading-none"
                   style={{ fontFamily: "var(--font-syne)", letterSpacing: "-0.025em" }}
                 >
-                  {profile?.username ?? "Loading…"}
+                  {profile?.username ?? (profileLoading ? "Loading..." : targetUsername ?? "Profile")}
                 </h1>
                 {joinDate && (
                   <span

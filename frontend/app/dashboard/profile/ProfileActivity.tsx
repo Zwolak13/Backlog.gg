@@ -113,7 +113,7 @@ function ActivityRow({ item }: { item: ActivityItem }) {
 
         {item.type === "wrote_review" && item.extra.review_text && (
           <p className="text-xs mt-2 leading-relaxed line-clamp-2" style={{ color: "rgba(255,255,255,0.45)" }}>
-            "{item.extra.review_text}"
+            &quot;{item.extra.review_text}&quot;
           </p>
         )}
       </div>

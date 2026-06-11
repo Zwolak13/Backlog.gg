@@ -39,52 +39,20 @@ async function readJson<T>(response: Response, fallback: T): Promise<T> {
   }
 }
 
-export function useRecentGames() {
-  const [games, setGames] = useState<LibraryGame[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/games/library/recent")
-      .then((r) => readJson<{ games?: LibraryGame[] }>(r, { games: [] }))
-      .then((d) => {
-        setGames(d.games ?? []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setGames([]);
-        setLoading(false);
-      });
-  }, []);
-
-  return { games, loading };
+function publicLibraryPath(username: string, suffix = "") {
+  const encodedUsername = encodeURIComponent(username);
+  return `/api/games/library/public/${encodedUsername}${suffix}`;
 }
 
-export function useFavouriteGames() {
+export function useRecentGames(username?: string) {
   const [games, setGames] = useState<LibraryGame[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/games/library/favourites")
-      .then((r) => readJson<{ games?: LibraryGame[] }>(r, { games: [] }))
-      .then((d) => {
-        setGames(d.games ?? []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setGames([]);
-        setLoading(false);
-      });
-  }, []);
+    const url = username
+      ? publicLibraryPath(username, "/recent")
+      : "/api/games/library/recent";
 
-  return { games, loading };
-}
-
-export function useLibrary(status?: string) {
-  const [games, setGames] = useState<LibraryGame[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const url = status ? `/api/games/library?status=${status}` : "/api/games/library";
     fetch(url)
       .then((r) => readJson<{ games?: LibraryGame[] }>(r, { games: [] }))
       .then((d) => {
@@ -95,17 +63,70 @@ export function useLibrary(status?: string) {
         setGames([]);
         setLoading(false);
       });
-  }, [status]);
+  }, [username]);
 
   return { games, loading };
 }
 
-export function useLibraryStats() {
+export function useFavouriteGames(username?: string) {
+  const [games, setGames] = useState<LibraryGame[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const url = username
+      ? publicLibraryPath(username, "/favourites")
+      : "/api/games/library/favourites";
+
+    fetch(url)
+      .then((r) => readJson<{ games?: LibraryGame[] }>(r, { games: [] }))
+      .then((d) => {
+        setGames(d.games ?? []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setGames([]);
+        setLoading(false);
+      });
+  }, [username]);
+
+  return { games, loading };
+}
+
+export function useLibrary(status?: string, username?: string) {
+  const [games, setGames] = useState<LibraryGame[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const baseUrl = username
+      ? publicLibraryPath(username)
+      : "/api/games/library";
+    const url = status ? `${baseUrl}?status=${encodeURIComponent(status)}` : baseUrl;
+
+    fetch(url)
+      .then((r) => readJson<{ games?: LibraryGame[] }>(r, { games: [] }))
+      .then((d) => {
+        setGames(d.games ?? []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setGames([]);
+        setLoading(false);
+      });
+  }, [status, username]);
+
+  return { games, loading };
+}
+
+export function useLibraryStats(username?: string) {
   const [stats, setStats] = useState<LibraryStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/games/library/stats")
+    const url = username
+      ? publicLibraryPath(username, "/stats")
+      : "/api/games/library/stats";
+
+    fetch(url)
       .then((r) => readJson<LibraryStats | null>(r, null))
       .then((d) => {
         setStats(d);
@@ -115,7 +136,7 @@ export function useLibraryStats() {
         setStats(null);
         setLoading(false);
       });
-  }, []);
+  }, [username]);
 
   return { stats, loading };
 }

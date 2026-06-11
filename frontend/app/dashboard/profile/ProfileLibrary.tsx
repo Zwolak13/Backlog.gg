@@ -9,11 +9,19 @@ import { toastSuccess, toastError } from "@/lib/toast";
 
 const STATUSES = ["all", "playing", "completed", "backlog", "wishlist"] as const;
 
-export default function ProfileLibrary() {
+export default function ProfileLibrary({
+  isOwnProfile,
+  username,
+}: {
+  isOwnProfile: boolean;
+  username?: string;
+}) {
   const [filter, setFilter] = useState<string>("all");
-  const { games, loading } = useLibrary(filter === "all" ? undefined : filter);
+  const { games, loading } = useLibrary(filter === "all" ? undefined : filter, username);
 
   const handleRemove = async (id: number) => {
+    if (!isOwnProfile) return;
+
     const res = await fetch(`/api/games/library/${id}`, { method: "DELETE" });
     if (res.ok) {
       toastSuccess("Removed from library");
@@ -24,6 +32,8 @@ export default function ProfileLibrary() {
   };
 
   const handleToggleFavourite = async (ug: LibraryGame) => {
+    if (!isOwnProfile) return;
+
     const res = await fetch(`/api/games/library/${ug.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -62,7 +72,9 @@ export default function ProfileLibrary() {
           style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.07)" }}
         >
           <p className="text-white/35 font-medium">No games here yet</p>
-          <p className="text-white/20 text-sm max-w-xs">Browse games and add them to your library.</p>
+          {isOwnProfile && (
+            <p className="text-white/20 text-sm max-w-xs">Browse games and add them to your library.</p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -70,6 +82,7 @@ export default function ProfileLibrary() {
             <LibraryCard
               key={ug.id}
               userGame={ug}
+              isOwnProfile={isOwnProfile}
               onRemove={() => handleRemove(ug.id)}
               onToggleFavourite={() => handleToggleFavourite(ug)}
             />
@@ -81,10 +94,12 @@ export default function ProfileLibrary() {
 }
 
 function LibraryCard({
+  isOwnProfile,
   userGame,
   onRemove,
   onToggleFavourite,
 }: {
+  isOwnProfile: boolean;
   userGame: LibraryGame;
   onRemove: () => void;
   onToggleFavourite: () => void;
@@ -105,20 +120,22 @@ function LibraryCard({
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
 
-      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavourite(); }}
-          className={`p-1.5 rounded-lg backdrop-blur-md border transition ${is_favourite ? "bg-yellow-500/80 border-yellow-400/50 text-white" : "bg-black/50 border-white/20 text-white/60 hover:text-yellow-400"}`}
-        >
-          <Star size={13} fill={is_favourite ? "currentColor" : "none"} />
-        </button>
-        <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemove(); }}
-          className="p-1.5 rounded-lg bg-black/50 backdrop-blur-md border border-white/20 text-white/60 hover:text-red-400 transition"
-        >
-          <Trash2 size={13} />
-        </button>
-      </div>
+      {isOwnProfile && (
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavourite(); }}
+            className={`p-1.5 rounded-lg backdrop-blur-md border transition ${is_favourite ? "bg-yellow-500/80 border-yellow-400/50 text-white" : "bg-black/50 border-white/20 text-white/60 hover:text-yellow-400"}`}
+          >
+            <Star size={13} fill={is_favourite ? "currentColor" : "none"} />
+          </button>
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemove(); }}
+            className="p-1.5 rounded-lg bg-black/50 backdrop-blur-md border border-white/20 text-white/60 hover:text-red-400 transition"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      )}
 
       <div className="absolute bottom-0 left-0 right-0 p-3">
         <p className="text-white text-sm font-semibold leading-tight line-clamp-2 drop-shadow-md group-hover:text-[var(--backlog-purple)] transition-colors">

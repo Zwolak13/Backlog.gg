@@ -48,9 +48,9 @@ function useHorizontalDrag() {
   return { ref, moved, onPointerDown };
 }
 
-export default function ProfileGameList() {
-  const { games: recentGames,    loading: recentLoading } = useRecentGames();
-  const { games: favouriteGames, loading: favLoading    } = useFavouriteGames();
+export default function ProfileGameList({ username }: { username?: string }) {
+  const { games: recentGames,    loading: recentLoading } = useRecentGames(username);
+  const { games: favouriteGames, loading: favLoading    } = useFavouriteGames(username);
 
   return (
     <div className="flex flex-col gap-8">
